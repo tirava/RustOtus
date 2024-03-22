@@ -1,19 +1,50 @@
 use smart_home_2::*;
 
-fn main() {
+const KITCHEN: &str = "Кухня";
+const LIVING_ROOM: &str = "Гостинная";
+const BEDROOM: &str = "Спальня";
+const THERMOMETER: &str = "Термометр";
+const SOCKET: &str = "Розетка";
+
+fn main() -> Result<(), SmartHomeError> {
     // Инициализация дома
     let mut home = SmartHome::new("Умный дом".to_string(), "Адрес дома, кв.1".to_string());
 
     // Инициализация помещений
-    let kitchen = Room::new("Кухня".to_string());
-    let bedroom1 = Room::new("Гостинная".to_string());
-    let bedroom2 = Room::new("Спальня".to_string());
-    if let Err(err) = home.set_rooms(vec![kitchen, bedroom1, bedroom2]) {
-        println!("{err}")
-    }
+    home.add_room(Room::new(KITCHEN.to_string()))?;
+    home.add_room(Room::new(LIVING_ROOM.to_string()))?;
+    home.add_room(Room::new(BEDROOM.to_string()))?;
 
-    for room in home.get_rooms() {
-        println!("{room}");
+    // Инициализация устройств
+    let thermometer1 = SmartDevice::new(
+        THERMOMETER.to_string(),
+        "127.0.0.1/api/thermometer1".to_string(),
+    );
+    thermometer1.connect()?;
+
+    let thermometer2 = SmartDevice::new(
+        THERMOMETER.to_string(),
+        "127.0.0.1/api/thermometer2".to_string(),
+    );
+    thermometer2.connect()?;
+
+    let socket1 = SmartDevice::new(SOCKET.to_string(), "127.0.0.1/api/socket1".to_string());
+    socket1.connect()?;
+
+    let socket2 = SmartDevice::new(SOCKET.to_string(), "127.0.0.1/api/socket2".to_string());
+    socket2.connect()?;
+
+    // Добавление устройств в помещения
+    home.get_room(LIVING_ROOM)?.add_device(thermometer1)?;
+    home.get_room(BEDROOM)?.add_device(thermometer2)?;
+    home.get_room(KITCHEN)?.add_device(socket1)?;
+    home.get_room(LIVING_ROOM)?.add_device(socket2)?;
+
+    for room in home.rooms() {
+        println!("{}:", room.get_name());
+        for device in room.devices() {
+            println!("  - {}", device.get_name());
+        }
     }
 
     // // Инициализация устройств
@@ -39,4 +70,6 @@ fn main() {
     // // Выводим отчёты на экран:
     // println!("Report #1: {report1}");
     // println!("Report #2: {report2}");
+
+    Ok(())
 }
