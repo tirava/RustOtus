@@ -71,7 +71,7 @@ impl SmartHome {
 
 pub struct Room {
     name: String,
-    devices: Vec<SmartDevice>,
+    devices: Vec<Box<dyn SmartSystem>>,
 }
 
 impl Room {
@@ -86,15 +86,15 @@ impl Room {
         &self.name
     }
 
-    pub fn add_device(&mut self, device: SmartDevice) -> Result<(), SmartHomeError> {
+    pub fn add_device(&mut self, device: Box<dyn SmartSystem>) -> Result<(), SmartHomeError> {
         // Проверить имена устройств на уникальность в помещении
         if self
             .devices
             .iter()
-            .any(|r| r.name.to_lowercase() == device.name.to_lowercase())
+            .any(|r| r.get_name().to_lowercase() == device.get_name().to_lowercase())
         {
             return Err(SmartHomeError::ErrDevicesInRoomMustBeUnique {
-                device_name: device.name,
+                device_name: device.get_name().to_string(),
             });
         }
 
@@ -103,7 +103,19 @@ impl Room {
         Ok(())
     }
 
-    pub fn devices(&self) -> &Vec<SmartDevice> {
+    pub fn get_device(
+        &mut self,
+        device_name: &str,
+    ) -> Result<&mut Box<dyn SmartSystem>, SmartHomeError> {
+        self.devices
+            .iter_mut()
+            .find(|r| r.get_name() == device_name)
+            .ok_or(SmartHomeError::ErrDeviceNotFound {
+                device_name: device_name.to_string(),
+            })
+    }
+
+    pub fn devices(&self) -> &Vec<Box<dyn SmartSystem>> {
         &self.devices
     }
 }
@@ -129,6 +141,22 @@ impl SmartDevice {
     }
 }
 
+pub trait SmartSystem {
+    fn get_name(&self) -> &str;
+    fn temperature(&self) -> Result<f64, SmartHomeError> {
+        Ok(0.0)
+    }
+    fn power(&self) -> Result<f64, SmartHomeError> {
+        Ok(0.0)
+    }
+    fn get_state(&self) -> Result<&DeviceState, SmartHomeError> {
+        Ok(&DeviceState::Unknown)
+    }
+    fn set_state(&mut self, _state: DeviceState) -> Result<(), SmartHomeError> {
+        Ok(())
+    }
+}
+
 pub struct SmartThermometer {
     pub device: SmartDevice,
     temperature: f64,
@@ -142,8 +170,14 @@ impl SmartThermometer {
             temperature: rand::thread_rng().gen_range(20.0..25.0),
         }
     }
+}
 
-    pub fn temperature(&self) -> Result<f64, SmartHomeError> {
+impl SmartSystem for SmartThermometer {
+    fn get_name(&self) -> &str {
+        &self.device.name
+    }
+
+    fn temperature(&self) -> Result<f64, SmartHomeError> {
         // in real will be request from device with error handling
         Ok(self.temperature)
     }
@@ -163,13 +197,24 @@ impl SmartPowerSocket {
             power: 0.0,
         }
     }
+}
 
-    pub fn get_state(&self) -> Result<&DeviceState, SmartHomeError> {
+impl SmartSystem for SmartPowerSocket {
+    fn get_name(&self) -> &str {
+        &self.device.name
+    }
+
+    fn power(&self) -> Result<f64, SmartHomeError> {
+        // in real will be request power from device
+        Ok(self.power)
+    }
+
+    fn get_state(&self) -> Result<&DeviceState, SmartHomeError> {
         // in real will be request from device with error handling
         Ok(&self.state)
     }
 
-    pub fn set_state(&mut self, state: DeviceState) -> Result<&SmartPowerSocket, SmartHomeError> {
+    fn set_state(&mut self, state: DeviceState) -> Result<(), SmartHomeError> {
         // in real will be request to device with error handling
         self.state = state;
 
@@ -179,12 +224,7 @@ impl SmartPowerSocket {
             _ => self.power = 0.0,
         }
 
-        Ok(self)
-    }
-
-    pub fn power(&self) -> Result<f64, SmartHomeError> {
-        // in real will be request power from device
-        Ok(self.power)
+        Ok(())
     }
 }
 
@@ -214,6 +254,7 @@ pub enum SmartHomeError {
     ErrRoomsMustBeUnique { room_name: String },
     ErrDevicesInRoomMustBeUnique { device_name: String },
     ErrRoomNotFound { room_name: String },
+    ErrDeviceNotFound { device_name: String },
     UnknownError,
 }
 
@@ -231,6 +272,9 @@ impl Display for SmartHomeError {
             }
             SmartHomeError::ErrRoomNotFound { room_name } => {
                 write!(f, "помещение не найдено: {room_name}")
+            }
+            SmartHomeError::ErrDeviceNotFound { device_name } => {
+                write!(f, "устройство не найдено: {device_name}")
             }
             SmartHomeError::UnknownError => write!(f, "неизвестная ошибка"),
         }

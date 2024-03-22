@@ -16,45 +16,56 @@ fn main() -> Result<(), SmartHomeError> {
     home.add_room(Room::new(BEDROOM.to_string()))?;
 
     // Инициализация устройств
-    let thermometer1 = SmartThermometer::new(SmartDevice::new(
+    let thermometer1 = Box::new(SmartThermometer::new(SmartDevice::new(
         THERMOMETER.to_string(),
         "127.0.0.1/api/thermometer1".to_string(),
-    ));
+    )));
     thermometer1.device.connect()?;
 
-    let thermometer2 = SmartThermometer::new(SmartDevice::new(
+    let thermometer2 = Box::new(SmartThermometer::new(SmartDevice::new(
         THERMOMETER.to_string(),
         "127.0.0.1/api/thermometer2".to_string(),
-    ));
+    )));
     thermometer2.device.connect()?;
 
-    let socket1 = SmartPowerSocket::new(SmartDevice::new(
+    let socket1 = Box::new(SmartPowerSocket::new(SmartDevice::new(
         SOCKET.to_string(),
         "127.0.0.1/api/socket1".to_string(),
-    ));
+    )));
     socket1.device.connect()?;
 
-    let socket2 = SmartPowerSocket::new(SmartDevice::new(
+    let socket2 = Box::new(SmartPowerSocket::new(SmartDevice::new(
         SOCKET.to_string(),
         "127.0.0.1/api/socket2".to_string(),
-    ));
+    )));
     socket2.device.connect()?;
 
     // Добавление устройств в помещения
+    home.get_room(LIVING_ROOM)?.add_device(thermometer1)?;
+    home.get_room(BEDROOM)?.add_device(thermometer2)?;
+    home.get_room(KITCHEN)?.add_device(socket1)?;
+    home.get_room(LIVING_ROOM)?.add_device(socket2)?;
+
+    // Включение устройств (розетки)
+    home.get_room(KITCHEN)?
+        .get_device(SOCKET)?
+        .set_state(DeviceState::On)?;
     home.get_room(LIVING_ROOM)?
-        .add_device(thermometer1.device)?;
-    home.get_room(BEDROOM)?.add_device(thermometer2.device)?;
-    home.get_room(KITCHEN)?.add_device(socket1.device)?;
-    home.get_room(LIVING_ROOM)?.add_device(socket2.device)?;
+        .get_device(SOCKET)?
+        .set_state(DeviceState::On)?;
 
     for room in home.rooms() {
         println!("{}:", room.get_name());
         for device in room.devices() {
-            println!("  - {}", device.get_name());
+            println!(
+                "  - {} (состояние: {}, tC: {:.2}, pW: {:.2})",
+                device.get_name(),
+                device.get_state()?,
+                device.temperature()?,
+                device.power()?
+            );
         }
     }
-
-    // Температура, состояние (on/off) и мощность
 
     // // Строим отчёт с использованием `OwningDeviceInfoProvider`.
     // let info_provider_1 = OwningDeviceInfoProvider {
