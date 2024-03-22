@@ -16,25 +16,25 @@ fn main() -> Result<(), SmartHomeError> {
     home.add_room(Room::new(BEDROOM.to_string()))?;
 
     // Инициализация устройств
-    let thermometer1 = Box::new(SmartThermometer::new(SmartDevice::new(
+    let thermometer1 = Box::new(SmartThermometer::new(BaseDevice::new(
         THERMOMETER.to_string(),
         "127.0.0.1/api/thermometer1".to_string(),
     )));
     thermometer1.device.connect()?;
 
-    let thermometer2 = Box::new(SmartThermometer::new(SmartDevice::new(
+    let thermometer2 = Box::new(SmartThermometer::new(BaseDevice::new(
         THERMOMETER.to_string(),
         "127.0.0.1/api/thermometer2".to_string(),
     )));
     thermometer2.device.connect()?;
 
-    let socket1 = Box::new(SmartPowerSocket::new(SmartDevice::new(
+    let socket1 = Box::new(SmartSocket::new(BaseDevice::new(
         SOCKET.to_string(),
         "127.0.0.1/api/socket1".to_string(),
     )));
     socket1.device.connect()?;
 
-    let socket2 = Box::new(SmartPowerSocket::new(SmartDevice::new(
+    let socket2 = Box::new(SmartSocket::new(BaseDevice::new(
         SOCKET.to_string(),
         "127.0.0.1/api/socket2".to_string(),
     )));

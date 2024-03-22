@@ -2,7 +2,6 @@
 // Библиотека позволяет запросить список помещений в доме.
 // Помещение имеет уникальное название и содержит названия нескольких устройств.
 // Устройство имеет уникальное в рамках помещения имя.
-
 // Библиотека позволяет получать список устройств в помещении.
 
 // Библиотека имеет функцию, возвращающую текстовый отчёт о состоянии дома.
@@ -14,7 +13,6 @@
 
 use rand::Rng;
 use std::fmt;
-use std::fmt::{Debug, Display, Formatter};
 
 pub struct SmartHome {
     name: String,
@@ -71,7 +69,7 @@ impl SmartHome {
 
 pub struct Room {
     name: String,
-    devices: Vec<Box<dyn SmartSystem>>,
+    devices: Vec<Box<dyn SmartDevice>>,
 }
 
 impl Room {
@@ -86,7 +84,7 @@ impl Room {
         &self.name
     }
 
-    pub fn add_device(&mut self, device: Box<dyn SmartSystem>) -> Result<(), SmartHomeError> {
+    pub fn add_device(&mut self, device: Box<dyn SmartDevice>) -> Result<(), SmartHomeError> {
         // Проверить имена устройств на уникальность в помещении
         if self
             .devices
@@ -106,32 +104,29 @@ impl Room {
     pub fn get_device(
         &mut self,
         device_name: &str,
-    ) -> Result<&mut Box<dyn SmartSystem>, SmartHomeError> {
+    ) -> Result<&mut Box<dyn SmartDevice>, SmartHomeError> {
         self.devices
             .iter_mut()
             .find(|r| r.get_name() == device_name)
             .ok_or(SmartHomeError::ErrDeviceNotFound {
                 device_name: device_name.to_string(),
             })
+        // in real will be request is device live with error handling
     }
 
-    pub fn devices(&self) -> &Vec<Box<dyn SmartSystem>> {
+    pub fn devices(&self) -> &Vec<Box<dyn SmartDevice>> {
         &self.devices
     }
 }
 
-pub struct SmartDevice {
+pub struct BaseDevice {
     name: String,
     connect_url: String,
 }
 
-impl SmartDevice {
+impl BaseDevice {
     pub fn new(name: String, connect_url: String) -> Self {
         Self { name, connect_url }
-    }
-
-    pub fn get_name(&self) -> &str {
-        &self.name
     }
 
     pub fn connect(&self) -> Result<(), SmartHomeError> {
@@ -141,7 +136,7 @@ impl SmartDevice {
     }
 }
 
-pub trait SmartSystem {
+pub trait SmartDevice {
     fn get_name(&self) -> &str;
     fn temperature(&self) -> Result<f64, SmartHomeError> {
         Ok(0.0)
@@ -158,12 +153,12 @@ pub trait SmartSystem {
 }
 
 pub struct SmartThermometer {
-    pub device: SmartDevice,
+    pub device: BaseDevice,
     temperature: f64,
 }
 
 impl SmartThermometer {
-    pub fn new(device: SmartDevice) -> Self {
+    pub fn new(device: BaseDevice) -> Self {
         Self {
             device,
             // fake device logic - delete after we have real device
@@ -172,7 +167,7 @@ impl SmartThermometer {
     }
 }
 
-impl SmartSystem for SmartThermometer {
+impl SmartDevice for SmartThermometer {
     fn get_name(&self) -> &str {
         &self.device.name
     }
@@ -183,15 +178,15 @@ impl SmartSystem for SmartThermometer {
     }
 }
 
-pub struct SmartPowerSocket {
-    pub device: SmartDevice,
+pub struct SmartSocket {
+    pub device: BaseDevice,
     state: DeviceState,
     power: f64,
 }
 
-impl SmartPowerSocket {
-    pub fn new(device: SmartDevice) -> SmartPowerSocket {
-        SmartPowerSocket {
+impl SmartSocket {
+    pub fn new(device: BaseDevice) -> SmartSocket {
+        SmartSocket {
             device,
             state: DeviceState::Unknown,
             power: 0.0,
@@ -199,7 +194,7 @@ impl SmartPowerSocket {
     }
 }
 
-impl SmartSystem for SmartPowerSocket {
+impl SmartDevice for SmartSocket {
     fn get_name(&self) -> &str {
         &self.device.name
     }
@@ -258,8 +253,8 @@ pub enum SmartHomeError {
     UnknownError,
 }
 
-impl Display for SmartHomeError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for SmartHomeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             SmartHomeError::ErrRoomsMustBeUnique { room_name } => {
                 write!(f, "помещение должно быть уникальным: {room_name}")
@@ -281,13 +276,12 @@ impl Display for SmartHomeError {
     }
 }
 
-impl Debug for SmartHomeError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        <Self as Display>::fmt(self, f)
+impl fmt::Debug for SmartHomeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+        <Self as fmt::Display>::fmt(self, f)
     }
 }
 
-#[derive(PartialEq)]
 pub enum DeviceState {
     Off,
     On,
