@@ -16,29 +16,36 @@ fn main() -> Result<(), SmartHomeError> {
     home.add_room(Room::new(BEDROOM.to_string()))?;
 
     // Инициализация устройств
-    let thermometer1 = SmartDevice::new(
+    let thermometer1 = SmartThermometer::new(SmartDevice::new(
         THERMOMETER.to_string(),
         "127.0.0.1/api/thermometer1".to_string(),
-    );
-    thermometer1.connect()?;
+    ));
+    thermometer1.device.connect()?;
 
-    let thermometer2 = SmartDevice::new(
+    let thermometer2 = SmartThermometer::new(SmartDevice::new(
         THERMOMETER.to_string(),
         "127.0.0.1/api/thermometer2".to_string(),
-    );
-    thermometer2.connect()?;
+    ));
+    thermometer2.device.connect()?;
 
-    let socket1 = SmartDevice::new(SOCKET.to_string(), "127.0.0.1/api/socket1".to_string());
-    socket1.connect()?;
+    let socket1 = SmartPowerSocket::new(SmartDevice::new(
+        SOCKET.to_string(),
+        "127.0.0.1/api/socket1".to_string(),
+    ));
+    socket1.device.connect()?;
 
-    let socket2 = SmartDevice::new(SOCKET.to_string(), "127.0.0.1/api/socket2".to_string());
-    socket2.connect()?;
+    let socket2 = SmartPowerSocket::new(SmartDevice::new(
+        SOCKET.to_string(),
+        "127.0.0.1/api/socket2".to_string(),
+    ));
+    socket2.device.connect()?;
 
     // Добавление устройств в помещения
-    home.get_room(LIVING_ROOM)?.add_device(thermometer1)?;
-    home.get_room(BEDROOM)?.add_device(thermometer2)?;
-    home.get_room(KITCHEN)?.add_device(socket1)?;
-    home.get_room(LIVING_ROOM)?.add_device(socket2)?;
+    home.get_room(LIVING_ROOM)?
+        .add_device(thermometer1.device)?;
+    home.get_room(BEDROOM)?.add_device(thermometer2.device)?;
+    home.get_room(KITCHEN)?.add_device(socket1.device)?;
+    home.get_room(LIVING_ROOM)?.add_device(socket2.device)?;
 
     for room in home.rooms() {
         println!("{}:", room.get_name());
@@ -47,10 +54,7 @@ fn main() -> Result<(), SmartHomeError> {
         }
     }
 
-    // // Инициализация устройств
-    // let socket1 = SmartSocket {};
-    // let socket2 = SmartSocket {};
-    // let thermo = SmartThermometer {};
+    // Температура, состояние (on/off) и мощность
 
     // // Строим отчёт с использованием `OwningDeviceInfoProvider`.
     // let info_provider_1 = OwningDeviceInfoProvider {

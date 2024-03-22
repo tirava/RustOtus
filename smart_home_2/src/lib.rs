@@ -12,8 +12,9 @@
 // Если устройство не найдено в источнике информации, то вместо текста о состоянии вернуть сообщение об ошибке.
 // Привести пример типа, предоставляющего текстовую информацию об устройствах в доме для составления отчёта.
 
+use rand::Rng;
+use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
-use std::io::Error;
 
 pub struct SmartHome {
     name: String,
@@ -75,7 +76,7 @@ pub struct Room {
 
 impl Room {
     pub fn new(name: String) -> Self {
-        Room {
+        Self {
             name,
             devices: vec![],
         }
@@ -114,7 +115,7 @@ pub struct SmartDevice {
 
 impl SmartDevice {
     pub fn new(name: String, connect_url: String) -> Self {
-        SmartDevice { name, connect_url }
+        Self { name, connect_url }
     }
 
     pub fn get_name(&self) -> &str {
@@ -125,6 +126,65 @@ impl SmartDevice {
         let _ = &self.connect_url;
 
         Ok(())
+    }
+}
+
+pub struct SmartThermometer {
+    pub device: SmartDevice,
+    temperature: f64,
+}
+
+impl SmartThermometer {
+    pub fn new(device: SmartDevice) -> Self {
+        Self {
+            device,
+            // fake device logic - delete after we have real device
+            temperature: rand::thread_rng().gen_range(20.0..25.0),
+        }
+    }
+
+    pub fn temperature(&self) -> Result<f64, SmartHomeError> {
+        // in real will be request from device with error handling
+        Ok(self.temperature)
+    }
+}
+
+pub struct SmartPowerSocket {
+    pub device: SmartDevice,
+    state: DeviceState,
+    power: f64,
+}
+
+impl SmartPowerSocket {
+    pub fn new(device: SmartDevice) -> SmartPowerSocket {
+        SmartPowerSocket {
+            device,
+            state: DeviceState::Unknown,
+            power: 0.0,
+        }
+    }
+
+    pub fn get_state(&self) -> Result<&DeviceState, SmartHomeError> {
+        // in real will be request from device with error handling
+        Ok(&self.state)
+    }
+
+    pub fn set_state(&mut self, state: DeviceState) -> Result<&SmartPowerSocket, SmartHomeError> {
+        // in real will be request to device with error handling
+        self.state = state;
+
+        // fake device logic - delete after we have real device
+        match self.state {
+            DeviceState::On => self.power = rand::thread_rng().gen_range(100.0..3500.0),
+            _ => self.power = 0.0,
+        }
+
+        Ok(self)
+    }
+
+    pub fn power(&self) -> Result<f64, SmartHomeError> {
+        // in real will be request power from device
+        Ok(self.power)
     }
 }
 
@@ -180,5 +240,22 @@ impl Display for SmartHomeError {
 impl Debug for SmartHomeError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         <Self as Display>::fmt(self, f)
+    }
+}
+
+#[derive(PartialEq)]
+pub enum DeviceState {
+    Off,
+    On,
+    Unknown,
+}
+
+impl fmt::Display for DeviceState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            DeviceState::Off => write!(f, "Выключено"),
+            DeviceState::On => write!(f, "Включено"),
+            DeviceState::Unknown => write!(f, "Неизвестно"),
+        }
     }
 }
