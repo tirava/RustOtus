@@ -11,53 +11,67 @@
 // Если устройство не найдено в источнике информации, то вместо текста о состоянии вернуть сообщение об ошибке.
 // Привести пример типа, предоставляющего текстовую информацию об устройствах в доме для составления отчёта.
 
-use rand::Rng;
+use std::collections::{HashMap, HashSet};
+// use rand::Rng;
 use std::fmt;
 
 pub struct SmartHome {
     name: String,
     address: String,
-    rooms: Vec<Room>,
+    devices: HashMap<String, HashSet<String>>, // <key: room, value: HashSet<device>
 }
 
 impl SmartHome {
-    pub fn new(name: String, address: String) -> Self {
+    pub fn new(name: String, address: String, room_devices: HashMap<&str, HashSet<&str>>) -> Self {
+        let devices = room_devices
+            .into_iter()
+            .fold(HashMap::new(), |mut acc, (k, v)| {
+                acc.insert(
+                    k.to_string(),
+                    v.into_iter().map(|s| s.to_string()).collect(),
+                );
+                acc
+            });
         Self {
             name,
             address,
-            rooms: vec![],
+            devices,
         }
     }
 
-    pub fn add_room(&mut self, room: Room) -> Result<(), SmartHomeError> {
-        // Проверить имена помещений на уникальность
-        if self
-            .rooms
-            .iter()
-            .any(|r| r.name.to_lowercase() == room.name.to_lowercase())
-        {
-            return Err(SmartHomeError::ErrRoomsMustBeUnique {
-                room_name: room.name,
-            });
-        }
-
-        self.rooms.push(room);
-
-        Ok(())
+    pub fn rooms(&self) -> Vec<&String> {
+        self.devices.keys().collect()
     }
 
-    pub fn get_room(&mut self, room_name: &str) -> Result<&mut Room, SmartHomeError> {
-        self.rooms
-            .iter_mut()
-            .find(|r| r.name == room_name)
-            .ok_or(SmartHomeError::ErrRoomNotFound {
-                room_name: room_name.to_string(),
-            })
+    pub fn devices(&self, room: &str) -> Vec<&String> {
+        self.devices[room].iter().collect()
     }
 
-    pub fn rooms(&self) -> &Vec<Room> {
-        &self.rooms
-    }
+    // pub fn add_room(&mut self, room: Room) -> Result<(), SmartHomeError> {
+    //     // Проверить имена помещений на уникальность
+    //     if self
+    //         .rooms
+    //         .iter()
+    //         .any(|r| r.name.to_lowercase() == room.name.to_lowercase())
+    //     {
+    //         return Err(SmartHomeError::ErrRoomsMustBeUnique {
+    //             room_name: room.name,
+    //         });
+    //     }
+    //
+    //     self.rooms.push(room);
+    //
+    //     Ok(())
+    // }
+
+    // pub fn get_room(&mut self, room_name: &str) -> Result<&mut Room, SmartHomeError> {
+    //     self.rooms
+    //         .iter_mut()
+    //         .find(|r| r.name == room_name)
+    //         .ok_or(SmartHomeError::ErrRoomNotFound {
+    //             room_name: room_name.to_string(),
+    //         })
+    // }
 
     // fn create_report(
     //     &self,
@@ -67,161 +81,161 @@ impl SmartHome {
     // }
 }
 
-pub struct Room {
-    name: String,
-    devices: Vec<Box<dyn SmartDevice>>,
-}
+// pub struct Room {
+//     name: String,
+//     devices: Vec<Box<dyn SmartDevice>>,
+// }
+//
+// impl Room {
+//     pub fn new(name: String) -> Self {
+//         Self {
+//             name,
+//             devices: vec![],
+//         }
+//     }
+//
+//     pub fn get_name(&self) -> &str {
+//         &self.name
+//     }
+//
+//     pub fn add_device(&mut self, device: Box<dyn SmartDevice>) -> Result<(), SmartHomeError> {
+//         // Проверить имена устройств на уникальность в помещении
+//         if self
+//             .devices
+//             .iter()
+//             .any(|r| r.get_name().to_lowercase() == device.get_name().to_lowercase())
+//         {
+//             return Err(SmartHomeError::ErrDevicesInRoomMustBeUnique {
+//                 device_name: device.get_name().to_string(),
+//             });
+//         }
+//
+//         self.devices.push(device);
+//
+//         Ok(())
+//     }
+//
+//     pub fn get_device(
+//         &mut self,
+//         device_name: &str,
+//     ) -> Result<&mut Box<dyn SmartDevice>, SmartHomeError> {
+//         self.devices
+//             .iter_mut()
+//             .find(|r| r.get_name() == device_name)
+//             .ok_or(SmartHomeError::ErrDeviceNotFound {
+//                 device_name: device_name.to_string(),
+//             })
+//         // in real will be request is device live with error handling
+//     }
+//
+//     pub fn devices(&self) -> &Vec<Box<dyn SmartDevice>> {
+//         &self.devices
+//     }
+// }
 
-impl Room {
-    pub fn new(name: String) -> Self {
-        Self {
-            name,
-            devices: vec![],
-        }
-    }
+// pub struct BaseDevice {
+//     name: String,
+//     connect_url: String,
+// }
+//
+// impl BaseDevice {
+//     pub fn new(name: String, connect_url: String) -> Self {
+//         Self { name, connect_url }
+//     }
+//
+//     pub fn connect(&self) -> Result<(), SmartHomeError> {
+//         let _ = &self.connect_url;
+//
+//         Ok(())
+//     }
+// }
 
-    pub fn get_name(&self) -> &str {
-        &self.name
-    }
+// pub trait SmartDevice {
+//     fn get_name(&self) -> &str;
+//     fn temperature(&self) -> Result<f64, SmartHomeError> {
+//         Ok(0.0)
+//     }
+//     fn power(&self) -> Result<f64, SmartHomeError> {
+//         Ok(0.0)
+//     }
+//     fn get_state(&self) -> Result<&DeviceState, SmartHomeError> {
+//         Ok(&DeviceState::Unknown)
+//     }
+//     fn set_state(&mut self, _state: DeviceState) -> Result<(), SmartHomeError> {
+//         Ok(())
+//     }
+// }
 
-    pub fn add_device(&mut self, device: Box<dyn SmartDevice>) -> Result<(), SmartHomeError> {
-        // Проверить имена устройств на уникальность в помещении
-        if self
-            .devices
-            .iter()
-            .any(|r| r.get_name().to_lowercase() == device.get_name().to_lowercase())
-        {
-            return Err(SmartHomeError::ErrDevicesInRoomMustBeUnique {
-                device_name: device.get_name().to_string(),
-            });
-        }
+// pub struct SmartThermometer {
+//     pub device: BaseDevice,
+//     temperature: f64,
+// }
+//
+// impl SmartThermometer {
+//     pub fn new(device: BaseDevice) -> Self {
+//         Self {
+//             device,
+//             // fake device logic - delete after we have real device
+//             temperature: rand::thread_rng().gen_range(20.0..25.0),
+//         }
+//     }
+// }
+//
+// impl SmartDevice for SmartThermometer {
+//     fn get_name(&self) -> &str {
+//         &self.device.name
+//     }
+//
+//     fn temperature(&self) -> Result<f64, SmartHomeError> {
+//         // in real will be request from device with error handling
+//         Ok(self.temperature)
+//     }
+// }
 
-        self.devices.push(device);
-
-        Ok(())
-    }
-
-    pub fn get_device(
-        &mut self,
-        device_name: &str,
-    ) -> Result<&mut Box<dyn SmartDevice>, SmartHomeError> {
-        self.devices
-            .iter_mut()
-            .find(|r| r.get_name() == device_name)
-            .ok_or(SmartHomeError::ErrDeviceNotFound {
-                device_name: device_name.to_string(),
-            })
-        // in real will be request is device live with error handling
-    }
-
-    pub fn devices(&self) -> &Vec<Box<dyn SmartDevice>> {
-        &self.devices
-    }
-}
-
-pub struct BaseDevice {
-    name: String,
-    connect_url: String,
-}
-
-impl BaseDevice {
-    pub fn new(name: String, connect_url: String) -> Self {
-        Self { name, connect_url }
-    }
-
-    pub fn connect(&self) -> Result<(), SmartHomeError> {
-        let _ = &self.connect_url;
-
-        Ok(())
-    }
-}
-
-pub trait SmartDevice {
-    fn get_name(&self) -> &str;
-    fn temperature(&self) -> Result<f64, SmartHomeError> {
-        Ok(0.0)
-    }
-    fn power(&self) -> Result<f64, SmartHomeError> {
-        Ok(0.0)
-    }
-    fn get_state(&self) -> Result<&DeviceState, SmartHomeError> {
-        Ok(&DeviceState::Unknown)
-    }
-    fn set_state(&mut self, _state: DeviceState) -> Result<(), SmartHomeError> {
-        Ok(())
-    }
-}
-
-pub struct SmartThermometer {
-    pub device: BaseDevice,
-    temperature: f64,
-}
-
-impl SmartThermometer {
-    pub fn new(device: BaseDevice) -> Self {
-        Self {
-            device,
-            // fake device logic - delete after we have real device
-            temperature: rand::thread_rng().gen_range(20.0..25.0),
-        }
-    }
-}
-
-impl SmartDevice for SmartThermometer {
-    fn get_name(&self) -> &str {
-        &self.device.name
-    }
-
-    fn temperature(&self) -> Result<f64, SmartHomeError> {
-        // in real will be request from device with error handling
-        Ok(self.temperature)
-    }
-}
-
-pub struct SmartSocket {
-    pub device: BaseDevice,
-    state: DeviceState,
-    power: f64,
-}
-
-impl SmartSocket {
-    pub fn new(device: BaseDevice) -> SmartSocket {
-        SmartSocket {
-            device,
-            state: DeviceState::Unknown,
-            power: 0.0,
-        }
-    }
-}
-
-impl SmartDevice for SmartSocket {
-    fn get_name(&self) -> &str {
-        &self.device.name
-    }
-
-    fn power(&self) -> Result<f64, SmartHomeError> {
-        // in real will be request power from device
-        Ok(self.power)
-    }
-
-    fn get_state(&self) -> Result<&DeviceState, SmartHomeError> {
-        // in real will be request from device with error handling
-        Ok(&self.state)
-    }
-
-    fn set_state(&mut self, state: DeviceState) -> Result<(), SmartHomeError> {
-        // in real will be request to device with error handling
-        self.state = state;
-
-        // fake device logic - delete after we have real device
-        match self.state {
-            DeviceState::On => self.power = rand::thread_rng().gen_range(100.0..3500.0),
-            _ => self.power = 0.0,
-        }
-
-        Ok(())
-    }
-}
+// pub struct SmartSocket {
+//     pub device: BaseDevice,
+//     state: DeviceState,
+//     power: f64,
+// }
+//
+// impl SmartSocket {
+//     pub fn new(device: BaseDevice) -> SmartSocket {
+//         SmartSocket {
+//             device,
+//             state: DeviceState::Unknown,
+//             power: 0.0,
+//         }
+//     }
+// }
+//
+// impl SmartDevice for SmartSocket {
+//     fn get_name(&self) -> &str {
+//         &self.device.name
+//     }
+//
+//     fn power(&self) -> Result<f64, SmartHomeError> {
+//         // in real will be request power from device
+//         Ok(self.power)
+//     }
+//
+//     fn get_state(&self) -> Result<&DeviceState, SmartHomeError> {
+//         // in real will be request from device with error handling
+//         Ok(&self.state)
+//     }
+//
+//     fn set_state(&mut self, state: DeviceState) -> Result<(), SmartHomeError> {
+//         // in real will be request to device with error handling
+//         self.state = state;
+//
+//         // fake device logic - delete after we have real device
+//         match self.state {
+//             DeviceState::On => self.power = rand::thread_rng().gen_range(100.0..3500.0),
+//             _ => self.power = 0.0,
+//         }
+//
+//         Ok(())
+//     }
+// }
 
 // trait DeviceInfoProvider {
 //     // todo: метод, возвращающий состояние устройства по имени комнаты и имени устройства
