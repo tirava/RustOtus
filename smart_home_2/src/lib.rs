@@ -116,50 +116,54 @@ impl Thermometer for SmartThermometer {
     }
 }
 
-// pub struct SmartSocket {
-//     pub device: BaseDevice,
-//     state: DeviceState,
-//     power: f64,
-// }
-//
-// impl SmartSocket {
-//     pub fn new(device: BaseDevice) -> SmartSocket {
-//         SmartSocket {
-//             device,
-//             state: DeviceState::Unknown,
-//             power: 0.0,
-//         }
-//     }
-// }
-//
-// impl SmartDevice for SmartSocket {
-//     fn get_name(&self) -> &str {
-//         &self.device.name
-//     }
-//
-//     fn power(&self) -> Result<f64, SmartHomeError> {
-//         // in real will be request power from device
-//         Ok(self.power)
-//     }
-//
-//     fn get_state(&self) -> Result<&DeviceState, SmartHomeError> {
-//         // in real will be request from device with error handling
-//         Ok(&self.state)
-//     }
-//
-//     fn set_state(&mut self, state: DeviceState) -> Result<(), SmartHomeError> {
-//         // in real will be request to device with error handling
-//         self.state = state;
-//
-//         // fake device logic - delete after we have real device
-//         match self.state {
-//             DeviceState::On => self.power = rand::thread_rng().gen_range(100.0..3500.0),
-//             _ => self.power = 0.0,
-//         }
-//
-//         Ok(())
-//     }
-// }
+pub struct SmartSocket {
+    device: SmartDevice,
+    state: DeviceState,
+    power: f64,
+}
+
+impl Device for SmartSocket {
+    fn new(name: String, connect_url: String) -> Self {
+        Self {
+            device: SmartDevice::new(name, connect_url),
+            state: DeviceState::Unknown,
+            power: 0.0,
+        }
+    }
+
+    fn name(&self) -> &str {
+        self.device.name()
+    }
+
+    fn connect(&self) -> Result<(), SmartHomeError> {
+        self.device.connect()
+    }
+}
+
+impl Socket for SmartSocket {
+    fn power(&self) -> Result<f64, SmartHomeError> {
+        // in real will be request power from device with error handling
+        Ok(self.power)
+    }
+
+    fn get_state(&self) -> Result<&DeviceState, SmartHomeError> {
+        // in real will be request from device with error handling
+        Ok(&self.state)
+    }
+
+    fn set_state(&mut self, state: DeviceState) -> Result<(), SmartHomeError> {
+        // in real will be request to device with error handling
+        self.state = state;
+
+        // fake device logic - delete after we have real device
+        match self.state {
+            DeviceState::On => self.power = rand::thread_rng().gen_range(100.0..3500.0),
+            _ => self.power = 0.0,
+        }
+
+        Ok(())
+    }
+}
 
 // trait DeviceInfoProvider {
 //     // todo: метод, возвращающий состояние устройства по имени комнаты и имени устройства

@@ -34,41 +34,41 @@ fn main() -> Result<(), SmartHomeError> {
     );
     thermometer2.connect()?;
 
+    let mut socket1 = SmartSocket::new(SOCKET.to_string(), "127.0.0.1/api/socket1".to_string());
+    socket1.connect()?;
+    socket1.set_state(DeviceState::On)?;
+
+    let mut socket2 = SmartSocket::new(SOCKET.to_string(), "127.0.0.1/api/socket2".to_string());
+    socket2.connect()?;
+    socket2.set_state(DeviceState::On)?;
+
     println!("{:?}", home.rooms());
     println!("{KITCHEN} - {:?}", home.devices(KITCHEN));
     println!("{LIVING_ROOM} - {:?}", home.devices(LIVING_ROOM));
     println!("{BEDROOM} - {:?}", home.devices(BEDROOM));
     println!(
-        "{}1 - {:.2}",
+        "{}1 - {:.2} tC",
         thermometer1.name(),
         thermometer1.temperature()?
     );
     println!(
-        "{}2 - {:.2}",
+        "{}2 - {:.2} tC",
         thermometer2.name(),
         thermometer2.temperature()?
     );
+    println!(
+        "{}1 - {} - {:.2} pW",
+        socket1.name(),
+        socket1.get_state()?,
+        socket1.power()?
+    );
+    println!(
+        "{}2 - {} - {:.2} pW",
+        socket2.name(),
+        socket2.get_state()?,
+        socket2.power()?
+    );
 
-    // let socket1 = Box::new(SmartSocket::new(BaseDevice::new(
-    //     SOCKET.to_string(),
-    //     "127.0.0.1/api/socket1".to_string(),
-    // )));
-    // socket1.device.connect()?;
-    //
-    // let socket2 = Box::new(SmartSocket::new(BaseDevice::new(
-    //     SOCKET.to_string(),
-    //     "127.0.0.1/api/socket2".to_string(),
-    // )));
-    // socket2.device.connect()?;
-    //
-    // // Включение устройств (розетки)
-    // home.get_room(KITCHEN)?
-    //     .get_device(SOCKET)?
-    //     .set_state(DeviceState::On)?;
-    // home.get_room(LIVING_ROOM)?
-    //     .get_device(SOCKET)?
-    //     .set_state(DeviceState::On)?;
-    //
     // for room in home.rooms() {
     //     println!("{}:", room.get_name());
     //     for device in room.devices() {
