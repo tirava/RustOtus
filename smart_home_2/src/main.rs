@@ -21,24 +21,34 @@ fn main() -> Result<(), SmartHomeError> {
         room_devices,
     );
 
+    // Инициализация устройств
+    let thermometer1 = SmartThermometer::new(
+        THERMOMETER.to_string(),
+        "127.0.0.1/api/thermometer1".to_string(),
+    );
+    thermometer1.connect()?;
+
+    let thermometer2 = SmartThermometer::new(
+        THERMOMETER.to_string(),
+        "127.0.0.1/api/thermometer2".to_string(),
+    );
+    thermometer2.connect()?;
+
     println!("{:?}", home.rooms());
     println!("{KITCHEN} - {:?}", home.devices(KITCHEN));
     println!("{LIVING_ROOM} - {:?}", home.devices(LIVING_ROOM));
     println!("{BEDROOM} - {:?}", home.devices(BEDROOM));
+    println!(
+        "{}1 - {:.2}",
+        thermometer1.name(),
+        thermometer1.temperature()?
+    );
+    println!(
+        "{}2 - {:.2}",
+        thermometer2.name(),
+        thermometer2.temperature()?
+    );
 
-    // // Инициализация устройств
-    // let thermometer1 = Box::new(SmartThermometer::new(BaseDevice::new(
-    //     THERMOMETER.to_string(),
-    //     "127.0.0.1/api/thermometer1".to_string(),
-    // )));
-    // thermometer1.device.connect()?;
-    //
-    // let thermometer2 = Box::new(SmartThermometer::new(BaseDevice::new(
-    //     THERMOMETER.to_string(),
-    //     "127.0.0.1/api/thermometer2".to_string(),
-    // )));
-    // thermometer2.device.connect()?;
-    //
     // let socket1 = Box::new(SmartSocket::new(BaseDevice::new(
     //     SOCKET.to_string(),
     //     "127.0.0.1/api/socket1".to_string(),
@@ -50,12 +60,6 @@ fn main() -> Result<(), SmartHomeError> {
     //     "127.0.0.1/api/socket2".to_string(),
     // )));
     // socket2.device.connect()?;
-    //
-    // // Добавление устройств в помещения
-    // home.get_room(LIVING_ROOM)?.add_device(thermometer1)?;
-    // home.get_room(BEDROOM)?.add_device(thermometer2)?;
-    // home.get_room(KITCHEN)?.add_device(socket1)?;
-    // home.get_room(LIVING_ROOM)?.add_device(socket2)?;
     //
     // // Включение устройств (розетки)
     // home.get_room(KITCHEN)?
