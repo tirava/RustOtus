@@ -41,30 +41,30 @@ impl SmartHome {
         self.devices[room].iter().collect()
     }
 
-    // fn create_report(
-    //     &self,
-    //     /* todo: принять обобщённый тип предоставляющий информацию об устройствах */
-    // ) -> String {
-    //     todo!("перебор комнат и устройств в них для составления отчёта")
-    // }
+    pub fn create_report(
+        &self,
+        info_provider: Box<dyn DeviceInfoProvider>,
+    ) -> Result<String, SmartHomeError> {
+        // todo!("перебор комнат и устройств в них для составления отчёта")
+        for room in self.rooms() {
+            for device in self.devices(room) {
+                let info = info_provider.state(room, device)?;
+                println!(
+                    " name: {}\n address: {}\n room: {}\n device: {}\n info: {}",
+                    self.name, self.address, room, device, info
+                );
+            }
+        }
+        Ok(String::from("OK"))
+    }
 }
 
 pub trait Device {
-    fn new(name: String, connect_url: String) -> Self;
+    fn new(name: String, connect_url: Option<String>) -> Self;
     fn name(&self) -> &str;
     fn connect(&self) -> Result<(), SmartHomeError> {
         Ok(())
     }
-}
-
-pub trait Thermometer: Device {
-    fn temperature(&self) -> Result<f64, SmartHomeError>;
-}
-
-pub trait Socket: Device {
-    fn power(&self) -> Result<f64, SmartHomeError>;
-    fn get_state(&self) -> Result<&DeviceState, SmartHomeError>;
-    fn set_state(&mut self, state: DeviceState) -> Result<(), SmartHomeError>;
 }
 
 pub struct SmartDevice {
@@ -73,8 +73,11 @@ pub struct SmartDevice {
 }
 
 impl Device for SmartDevice {
-    fn new(name: String, connect_url: String) -> Self {
-        Self { name, connect_url }
+    fn new(name: String, connect_url: Option<String>) -> Self {
+        Self {
+            name,
+            connect_url: connect_url.unwrap_or_default(),
+        }
     }
 
     fn name(&self) -> &str {
@@ -87,25 +90,26 @@ impl Device for SmartDevice {
     }
 }
 
+pub trait Thermometer: Device {
+    fn temperature(&self) -> Result<f64, SmartHomeError>;
+}
+
 pub struct SmartThermometer {
     device: SmartDevice,
     temperature: f64,
 }
 
 impl Device for SmartThermometer {
-    fn new(name: String, connect_url: String) -> Self {
+    fn new(name: String, connect_url: Option<String>) -> Self {
         Self {
             device: SmartDevice::new(name, connect_url),
+            // fake device logic - delete after we have real device
             temperature: rand::thread_rng().gen_range(20.0..25.0),
         }
     }
 
     fn name(&self) -> &str {
         self.device.name()
-    }
-
-    fn connect(&self) -> Result<(), SmartHomeError> {
-        self.device.connect()
     }
 }
 
@@ -116,6 +120,12 @@ impl Thermometer for SmartThermometer {
     }
 }
 
+pub trait Socket: Device {
+    fn power(&self) -> Result<f64, SmartHomeError>;
+    fn get_state(&self) -> Result<&DeviceState, SmartHomeError>;
+    fn set_state(&mut self, state: DeviceState) -> Result<(), SmartHomeError>;
+}
+
 pub struct SmartSocket {
     device: SmartDevice,
     state: DeviceState,
@@ -123,7 +133,7 @@ pub struct SmartSocket {
 }
 
 impl Device for SmartSocket {
-    fn new(name: String, connect_url: String) -> Self {
+    fn new(name: String, connect_url: Option<String>) -> Self {
         Self {
             device: SmartDevice::new(name, connect_url),
             state: DeviceState::Unknown,
@@ -133,10 +143,6 @@ impl Device for SmartSocket {
 
     fn name(&self) -> &str {
         self.device.name()
-    }
-
-    fn connect(&self) -> Result<(), SmartHomeError> {
-        self.device.connect()
     }
 }
 
@@ -165,40 +171,59 @@ impl Socket for SmartSocket {
     }
 }
 
-// trait DeviceInfoProvider {
-//     // todo: метод, возвращающий состояние устройства по имени комнаты и имени устройства
-// }
-//
-// // ***** Пример использования библиотеки умный дом:
-//
-// // Пользовательские устройства:
-// struct SmartSocket {}
-// struct SmartThermometer {}
-//
-// // Пользовательские поставщики информации об устройствах.
-// // Могут как хранить устройства, так и заимствывать.
-// struct OwningDeviceInfoProvider {
-//     socket: SmartSocket,
-// }
-// struct BorrowingDeviceInfoProvider<'a, 'b> {
-//     socket: &'a SmartSocket,
-//     thermo: &'b SmartThermometer,
-// }
-//
-// // todo: реализация трейта `DeviceInfoProvider` для поставщиков информации
+pub trait DeviceInfoProvider {
+    fn state(&self, room_name: &str, device_name: &str) -> Result<DeviceInfo, SmartHomeError>;
+}
+
+pub struct OwningDeviceInfoProvider {
+    pub socket: SmartSocket,
+}
+
+pub struct BorrowingDeviceInfoProvider<'a, 'b> {
+    pub socket: &'a SmartSocket,
+    pub thermometer: &'b SmartThermometer,
+}
+
+pub enum DeviceInfo {
+    OwningDeviceInfoProvider(OwningDeviceInfoProvider),
+    BorrowingDeviceInfoProvider(BorrowingDeviceInfoProvider<'static, 'static>),
+}
+
+impl DeviceInfoProvider for OwningDeviceInfoProvider {
+    fn state(&self, room_name: &str, device_name: &str) -> Result<DeviceInfo, SmartHomeError> {
+        // todo: метод, возвращающий состояние устройства по имени комнаты и имени устройства
+        todo!()
+    }
+}
+
+impl DeviceInfoProvider for BorrowingDeviceInfoProvider<'_, '_> {
+    fn state(&self, room_name: &str, device_name: &str) -> Result<DeviceInfo, SmartHomeError> {
+        // todo: метод, возвращающий состояние устройства по имени комнаты и имени устройства
+        todo!()
+    }
+}
+
+impl fmt::Display for DeviceInfo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            DeviceInfo::OwningDeviceInfoProvider(info) => {
+                write!(f, "111")
+            }
+            DeviceInfo::BorrowingDeviceInfoProvider(info) => {
+                write!(f, "222")
+            }
+        }
+    }
+}
 
 pub enum SmartHomeError {
-    ErrRoomNotFound { room_name: String },
     ErrDeviceNotFound { device_name: String },
     UnknownError,
 }
 
 impl fmt::Display for SmartHomeError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            SmartHomeError::ErrRoomNotFound { room_name } => {
-                write!(f, "помещение не найдено: {room_name}")
-            }
             SmartHomeError::ErrDeviceNotFound { device_name } => {
                 write!(f, "устройство не найдено: {device_name}")
             }
@@ -208,7 +233,7 @@ impl fmt::Display for SmartHomeError {
 }
 
 impl fmt::Debug for SmartHomeError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         <Self as fmt::Display>::fmt(self, f)
     }
 }
