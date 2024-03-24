@@ -1,6 +1,8 @@
 use rand::Rng;
+use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
+use std::rc::Rc;
 
 pub const KITCHEN: &str = "Кухня";
 pub const LIVING_ROOM: &str = "Гостинная";
@@ -70,7 +72,7 @@ impl SmartHome {
                 .as_str();
             }
         }
-        
+
         report
     }
 }
@@ -197,14 +199,14 @@ pub struct OwningDeviceInfoProvider {
     pub socket: SmartSocket,
 }
 
-pub struct BorrowingDeviceInfoProvider<'a, 'b> {
-    pub socket: &'a SmartSocket,
-    pub thermometer: &'b SmartThermometer,
+pub struct BorrowingDeviceInfoProvider {
+    pub socket: Rc<RefCell<SmartSocket>>,
+    pub thermometer: Rc<RefCell<SmartThermometer>>,
 }
 
 pub enum DeviceInfo {
     OwningDeviceInfoProvider(OwningDeviceInfoProvider),
-    BorrowingDeviceInfoProvider(BorrowingDeviceInfoProvider<'static, 'static>),
+    BorrowingDeviceInfoProvider(BorrowingDeviceInfoProvider),
 }
 
 impl DeviceInfoProvider for OwningDeviceInfoProvider {
@@ -235,10 +237,44 @@ impl DeviceInfoProvider for OwningDeviceInfoProvider {
     }
 }
 
-impl DeviceInfoProvider for BorrowingDeviceInfoProvider<'_, '_> {
+impl DeviceInfoProvider for BorrowingDeviceInfoProvider {
     fn state(&self, room_name: &str, device_name: &str) -> Result<DeviceInfo, SmartHomeError> {
-        // todo: метод, возвращающий состояние устройства по имени комнаты и имени устройства
-        todo!()
+        if device_name != self.socket.borrow().name()
+            && device_name != self.thermometer.borrow().name()
+        {
+            return Err(SmartHomeError::ErrDeviceNotFound {
+                room_name: room_name.to_string(),
+                device_name: device_name.to_string(),
+            });
+        }
+
+        let mut socket = self.socket.clone();
+        match room_name {
+            KITCHEN => {
+                socket.borrow_mut().set_state(DeviceState::Off)?;
+            }
+            LIVING_ROOM => {
+                socket.borrow_mut().set_state(DeviceState::Unknown)?;
+            }
+            BEDROOM => {
+                socket.borrow_mut().set_state(DeviceState::On)?;
+            }
+            _ => {}
+        }
+        // todo
+        let mut thermometer = self.thermometer.clone();
+        match room_name {
+            KITCHEN => self.thermometer.borrow_mut().temperature = 21.11,
+            LIVING_ROOM => self.thermometer.borrow_mut().temperature = 22.22,
+            BEDROOM => self.thermometer.borrow_mut().temperature = 20.21,
+            _ => {}
+        }
+
+        let info = DeviceInfo::BorrowingDeviceInfoProvider(BorrowingDeviceInfoProvider {
+            socket,
+            thermometer,
+        });
+        Ok(info)
     }
 }
 
@@ -257,9 +293,12 @@ impl fmt::Display for DeviceInfo {
                 write!(
                     f,
                     "статус - {}, мощность {:.2} pW, температура {:.2} tC",
-                    info.socket.get_state().unwrap_or(&DeviceState::Unknown),
-                    info.socket.power().unwrap_or_default(),
-                    info.thermometer.temperature().unwrap_or_default(),
+                    info.socket
+                        .borrow()
+                        .get_state()
+                        .unwrap_or(&DeviceState::Unknown),
+                    info.socket.borrow().power().unwrap_or_default(),
+                    info.thermometer.borrow().temperature().unwrap_or_default(),
                 )
             }
         }
