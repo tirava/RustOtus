@@ -1,12 +1,6 @@
 use smart_home_2::*;
 use std::collections::{HashMap, HashSet};
 
-const KITCHEN: &str = "Кухня";
-const LIVING_ROOM: &str = "Гостинная";
-const BEDROOM: &str = "Спальня";
-const THERMOMETER: &str = "Термометр";
-const SOCKET: &str = "Розетка";
-
 fn main() -> Result<(), SmartHomeError> {
     // --------------------------------------------------------------------------------------------
     // Пример #1: использование библиотеки для управления устройствами
@@ -79,31 +73,44 @@ fn main() -> Result<(), SmartHomeError> {
         socket2.power()?
     );
 
-    println!("------------------------------------------------------------------------------");
+    println!("------------------------------------------------------------------------------\n");
+
     // --------------------------------------------------------------------------------------------
     // Пример #2: использование библиотеки для построения отчётов
     // --------------------------------------------------------------------------------------------
 
+    // Инициализация дома и списка устройств
+    let house_devices = HashMap::from([
+        (KITCHEN, HashSet::from([SOCKET])),
+        (LIVING_ROOM, HashSet::from([SOCKET])),
+        (BEDROOM, HashSet::from([SOCKET, THERMOMETER])),
+    ]);
+
+    let house = SmartHome::new(
+        "Умный дом".to_string(),
+        "Адрес дома, кв.1".to_string(),
+        house_devices,
+    );
+
     // Инициализация устройств
     let socket1 = SmartSocket::new(SOCKET.to_string(), None);
-    let socket2 = SmartSocket::new(SOCKET.to_string(), None);
-    let thermo = SmartThermometer::new(THERMOMETER.to_string(), None);
+    // let socket2 = SmartSocket::new(SOCKET.to_string(), None);
+    // let thermometer = SmartThermometer::new(THERMOMETER.to_string(), None);
 
     // Строим отчёт с использованием `OwningDeviceInfoProvider`.
     let info_provider_1 = OwningDeviceInfoProvider { socket: socket1 };
-    let report1 = home.create_report(Box::new(info_provider_1))?;
+    let report1 = house.create_report(Box::new(info_provider_1));
 
-    // // Строим отчёт с использованием `BorrowingDeviceInfoProvider`.
+    // Строим отчёт с использованием `BorrowingDeviceInfoProvider`.
     // let info_provider_2 = BorrowingDeviceInfoProvider {
     //     socket: &socket2,
-    //     thermo: &thermo,
+    //     thermometer: &thermometer,
     // };
-    // // todo: после добавления обобщённого аргумента в метод, расскоментировать передачу параметра
-    // let report2 = house.create_report(/* &info_provider_2 */);
-    //
+    // let report2 = house.create_report(Box::new(info_provider_2));
+
     // Выводим отчёты на экран:
-    println!("Report #1: {report1}");
-    // println!("Report #2: {report2}");
+    println!("Report #1:\n{report1}\n");
+    // println!("Report #2:\n{report2}\n");
 
     Ok(())
 }

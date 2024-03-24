@@ -1,13 +1,12 @@
-// Библиотека имеет функцию, возвращающую текстовый отчёт о состоянии дома.
-// Эта функция принимает в качестве аргумента обобщённый тип, позволяющий получить текстовую информацию
-// о состоянии устройства, для включения в отчёт. Эта информация должна предоставляться
-// для каждого устройства на основе данных о положении устройства в доме: имени комнаты и имени устройства.
-// Если устройство не найдено в источнике информации, то вместо текста о состоянии вернуть сообщение об ошибке.
-// Привести пример типа, предоставляющего текстовую информацию об устройствах в доме для составления отчёта.
-
 use rand::Rng;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
+
+pub const KITCHEN: &str = "Кухня";
+pub const LIVING_ROOM: &str = "Гостинная";
+pub const BEDROOM: &str = "Спальня";
+pub const THERMOMETER: &str = "Термометр";
+pub const SOCKET: &str = "Розетка";
 
 pub struct SmartHome {
     name: String,
@@ -34,28 +33,45 @@ impl SmartHome {
     }
 
     pub fn rooms(&self) -> Vec<&String> {
-        self.devices.keys().collect()
+        let mut result: Vec<_> = self.devices.keys().collect();
+        result.sort();
+        result
     }
 
     pub fn devices(&self, room: &str) -> Vec<&String> {
-        self.devices[room].iter().collect()
+        let mut result: Vec<_> = self.devices[room].iter().collect();
+        result.sort();
+        result
     }
 
-    pub fn create_report(
-        &self,
-        info_provider: Box<dyn DeviceInfoProvider>,
-    ) -> Result<String, SmartHomeError> {
-        // todo!("перебор комнат и устройств в них для составления отчёта")
+    pub fn create_report(&self, info_provider: Box<dyn DeviceInfoProvider>) -> String {
+        let mut report = String::new();
+
         for room in self.rooms() {
             for device in self.devices(room) {
-                let info = info_provider.state(room, device)?;
-                println!(
-                    " name: {}\n address: {}\n room: {}\n device: {}\n info: {}",
-                    self.name, self.address, room, device, info
-                );
+                let info = match info_provider.state(room, device) {
+                    Ok(info) => info.to_string(),
+                    Err(e) => format!("ошибка: {}", e),
+                };
+
+                report += format!(
+                    "\n {:13} {}\n {:13} {}\n {:13} {}\n {:13} {}\n {:13} {}\n",
+                    "Имя:",
+                    self.name,
+                    "Адрес:",
+                    self.address,
+                    "Комната:",
+                    room,
+                    "Устройство:",
+                    device,
+                    "Состояние:",
+                    info
+                )
+                .as_str();
             }
         }
-        Ok(String::from("OK"))
+        
+        report
     }
 }
 
@@ -67,6 +83,7 @@ pub trait Device {
     }
 }
 
+#[derive(Clone)]
 pub struct SmartDevice {
     name: String,
     connect_url: String,
@@ -126,6 +143,7 @@ pub trait Socket: Device {
     fn set_state(&mut self, state: DeviceState) -> Result<(), SmartHomeError>;
 }
 
+#[derive(Clone)]
 pub struct SmartSocket {
     device: SmartDevice,
     state: DeviceState,
@@ -191,8 +209,29 @@ pub enum DeviceInfo {
 
 impl DeviceInfoProvider for OwningDeviceInfoProvider {
     fn state(&self, room_name: &str, device_name: &str) -> Result<DeviceInfo, SmartHomeError> {
-        // todo: метод, возвращающий состояние устройства по имени комнаты и имени устройства
-        todo!()
+        if device_name != self.socket.name() {
+            return Err(SmartHomeError::ErrDeviceNotFound {
+                room_name: room_name.to_string(),
+                device_name: device_name.to_string(),
+            });
+        }
+
+        let mut socket = self.socket.clone();
+        match room_name {
+            KITCHEN => {
+                socket.set_state(DeviceState::On)?;
+            }
+            LIVING_ROOM => {
+                socket.set_state(DeviceState::Off)?;
+            }
+            BEDROOM => {
+                socket.set_state(DeviceState::Unknown)?;
+            }
+            _ => {}
+        }
+
+        let info = DeviceInfo::OwningDeviceInfoProvider(OwningDeviceInfoProvider { socket });
+        Ok(info)
     }
 }
 
@@ -207,25 +246,45 @@ impl fmt::Display for DeviceInfo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             DeviceInfo::OwningDeviceInfoProvider(info) => {
-                write!(f, "111")
+                write!(
+                    f,
+                    "статус - {}, мощность {:.2} pW",
+                    info.socket.get_state().unwrap_or(&DeviceState::Unknown),
+                    info.socket.power().unwrap_or_default(),
+                )
             }
             DeviceInfo::BorrowingDeviceInfoProvider(info) => {
-                write!(f, "222")
+                write!(
+                    f,
+                    "статус - {}, мощность {:.2} pW, температура {:.2} tC",
+                    info.socket.get_state().unwrap_or(&DeviceState::Unknown),
+                    info.socket.power().unwrap_or_default(),
+                    info.thermometer.temperature().unwrap_or_default(),
+                )
             }
         }
     }
 }
 
 pub enum SmartHomeError {
-    ErrDeviceNotFound { device_name: String },
+    ErrDeviceNotFound {
+        room_name: String,
+        device_name: String,
+    },
     UnknownError,
 }
 
 impl fmt::Display for SmartHomeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            SmartHomeError::ErrDeviceNotFound { device_name } => {
-                write!(f, "устройство не найдено: {device_name}")
+            SmartHomeError::ErrDeviceNotFound {
+                room_name,
+                device_name,
+            } => {
+                write!(
+                    f,
+                    "устройство '{device_name}' для помещения '{room_name}' в источнике информации не найдено"
+                )
             }
             SmartHomeError::UnknownError => write!(f, "неизвестная ошибка"),
         }
@@ -238,6 +297,7 @@ impl fmt::Debug for SmartHomeError {
     }
 }
 
+#[derive(Clone)]
 pub enum DeviceState {
     Off,
     On,
@@ -247,9 +307,9 @@ pub enum DeviceState {
 impl fmt::Display for DeviceState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            DeviceState::Off => write!(f, "Выключено"),
-            DeviceState::On => write!(f, "Включено"),
-            DeviceState::Unknown => write!(f, "Неизвестно"),
+            DeviceState::Off => write!(f, "выключено"),
+            DeviceState::On => write!(f, "включено"),
+            DeviceState::Unknown => write!(f, "неизвестно"),
         }
     }
 }
