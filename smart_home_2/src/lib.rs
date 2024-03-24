@@ -248,25 +248,31 @@ impl DeviceInfoProvider for BorrowingDeviceInfoProvider {
             });
         }
 
-        let mut socket = self.socket.clone();
+        let socket = self.socket.clone();
+        let thermometer = self.thermometer.clone();
+
         match room_name {
             KITCHEN => {
                 socket.borrow_mut().set_state(DeviceState::Off)?;
+                self.thermometer.borrow_mut().temperature = rand::thread_rng().gen_range(20.0..25.0)
             }
             LIVING_ROOM => {
                 socket.borrow_mut().set_state(DeviceState::Unknown)?;
+                self.thermometer.borrow_mut().temperature = rand::thread_rng().gen_range(20.0..25.0)
             }
             BEDROOM => {
                 socket.borrow_mut().set_state(DeviceState::On)?;
+                self.thermometer.borrow_mut().temperature = rand::thread_rng().gen_range(20.0..25.0)
             }
             _ => {}
         }
-        // todo
-        let mut thermometer = self.thermometer.clone();
-        match room_name {
-            KITCHEN => self.thermometer.borrow_mut().temperature = 21.11,
-            LIVING_ROOM => self.thermometer.borrow_mut().temperature = 22.22,
-            BEDROOM => self.thermometer.borrow_mut().temperature = 20.21,
+
+        match device_name {
+            SOCKET => self.thermometer.borrow_mut().temperature = 0.0,
+            THERMOMETER => {
+                self.socket.borrow_mut().power = 0.0;
+                self.socket.borrow_mut().state = DeviceState::Unknown
+            }
             _ => {}
         }
 

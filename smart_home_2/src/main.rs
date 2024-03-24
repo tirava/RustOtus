@@ -111,8 +111,8 @@ fn main() -> Result<(), SmartHomeError> {
     let report2 = house.create_report(Box::new(info_provider_2));
 
     // Выводим отчёты на экран:
-    // println!("Report #1:\n{report1}\n");
-    println!("Report #2:\n{report2}\n");
+    println!("---------\nReport #1:\n----------\n{report1}");
+    println!("---------\nReport #2:\n----------\n{report2}");
 
     Ok(())
 }
