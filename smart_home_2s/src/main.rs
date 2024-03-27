@@ -1,17 +1,5 @@
-// Дом имеет название и содержит несколько помещений.
-// Библиотека позволяет запросить список помещений в доме.
-// Помещение имеет уникальное название и содержит названия нескольких устройств.
-// Устройство имеет уникальное в рамках помещения имя.
-// Библиотека позволяет получать список устройств в помещении.
-// Библиотека имеет функцию, возвращающую текстовый отчёт о состоянии дома.
-// Эта функция принимает в качестве аргумента обобщённый тип, позволяющий получить текстовую информацию
-// о состоянии устройства, для включения в отчёт. Эта информация должна предоставляться
-// для каждого устройства на основе данных о положении устройства в доме: имени комнаты и имени устройства.
-// Если устройство не найдено в источнике информации, то вместо текста о состоянии вернуть сообщение об ошибке.
-// Привести пример типа, предоставляющего текстовую информацию об устройствах в доме для составления отчёта.
-
+use rand::Rng;
 use std::fmt;
-use std::fmt::format;
 
 const KITCHEN: &str = "Кухня";
 const LIVING_ROOM: &str = "Гостинная";
@@ -20,8 +8,6 @@ const THERMOMETER_1: &str = "Термометр-1";
 const THERMOMETER_2: &str = "Термометр-2";
 const SOCKET_1: &str = "Розетка-1";
 const SOCKET_2: &str = "Розетка-2";
-const SOCKET_3: &str = "Розетка-3";
-const SOCKET_4: &str = "Розетка-4";
 
 struct SmartHouse {
     name: String,
@@ -40,8 +26,8 @@ impl SmartHouse {
     fn devices(&self, room: &str) -> [&str; 2] {
         match room {
             KITCHEN => [SOCKET_1, SOCKET_2],
-            LIVING_ROOM => [THERMOMETER_1, SOCKET_3],
-            BEDROOM => [THERMOMETER_2, SOCKET_4],
+            LIVING_ROOM => [THERMOMETER_1, SOCKET_1],
+            BEDROOM => [THERMOMETER_2, SOCKET_2],
             _ => [""; 2],
         }
     }
@@ -75,109 +61,144 @@ trait DeviceInfoProvider {
     fn get_device_state(&self, room: &str, device: &str) -> Option<String>;
 }
 
-struct SmartSocket {
-    name: String,
-    room: String,
-    state: DeviceState,
-    power: f64,
-}
-struct SmartThermometer {
-    name: String,
-    room: String,
-    temperature: f64,
-}
+struct SmartSocket {}
+struct SmartThermometer {}
 
 struct OwningDeviceInfoProvider {
     socket: SmartSocket,
 }
-struct BorrowingDeviceInfoProvider<'a, 'b> {
+struct BorrowingDeviceInfoProvider<'a> {
     socket: &'a SmartSocket,
-    thermometer: &'b SmartThermometer,
+    thermometer: &'a SmartThermometer,
 }
 
 impl DeviceInfoProvider for OwningDeviceInfoProvider {
     fn get_device_state(&self, room: &str, device: &str) -> Option<String> {
-        if room != self.socket.room || device != self.socket.name {
-            return None;
+        let mut status = DeviceStatus::Unknown;
+        let mut power = 0.0;
+
+        match device {
+            SOCKET_1 => match room {
+                KITCHEN => {
+                    status = DeviceStatus::On;
+                    power = rand::thread_rng().gen_range(1000.0..2500.0);
+                }
+                LIVING_ROOM => {
+                    status = DeviceStatus::Off;
+                }
+                BEDROOM => {}
+                _ => {
+                    return None;
+                }
+            },
+            SOCKET_2 => match room {
+                KITCHEN => {
+                    status = DeviceStatus::On;
+                    power = rand::thread_rng().gen_range(500.0..1000.0);
+                }
+                LIVING_ROOM => {}
+                BEDROOM => {
+                    status = DeviceStatus::Off;
+                }
+                _ => {
+                    return None;
+                }
+            },
+            _ => {
+                return None;
+            }
+        }
+
+        format!("статус - {}, мощность {:.2} pW", status, power).into()
+    }
+}
+impl DeviceInfoProvider for BorrowingDeviceInfoProvider<'_> {
+    fn get_device_state(&self, room: &str, device: &str) -> Option<String> {
+        let mut status = DeviceStatus::Unknown;
+        let mut power = 0.0;
+        let mut themp = 0.0;
+
+        match device {
+            SOCKET_1 => match room {
+                KITCHEN => {
+                    status = DeviceStatus::Off;
+                }
+                LIVING_ROOM => {
+                    status = DeviceStatus::On;
+                    power = rand::thread_rng().gen_range(100.0..500.0);
+                }
+                BEDROOM => {}
+                _ => {
+                    return None;
+                }
+            },
+            SOCKET_2 => match room {
+                KITCHEN => {
+                    status = DeviceStatus::Off;
+                }
+                LIVING_ROOM => {}
+                BEDROOM => {
+                    status = DeviceStatus::On;
+                    power = rand::thread_rng().gen_range(100.0..500.0);
+                }
+                _ => {
+                    return None;
+                }
+            },
+            THERMOMETER_1 => match room {
+                KITCHEN => {}
+                LIVING_ROOM => {
+                    themp = rand::thread_rng().gen_range(25.0..30.0);
+                }
+                BEDROOM => {}
+                _ => {
+                    return None;
+                }
+            },
+            THERMOMETER_2 => match room {
+                KITCHEN => {}
+                LIVING_ROOM => {}
+                BEDROOM => {
+                    themp = rand::thread_rng().gen_range(20.0..25.0);
+                }
+                _ => {
+                    return None;
+                }
+            },
+            _ => {
+                return None;
+            }
         }
 
         format!(
-            "статус - {}, мощность {:.2} pW",
-            self.socket.state,
-            self.socket.power.to_string()
+            "статус - {}, мощность {:.2} pW, температура {:.2} tC",
+            status, power, themp
         )
         .into()
     }
 }
-impl DeviceInfoProvider for BorrowingDeviceInfoProvider<'_, '_> {
-    fn get_device_state(&self, room: &str, device: &str) -> Option<String> {
-        if room != self.socket.room
-            && (device != self.socket.name || device != self.thermometer.name)
-        {
-            return None;
-        }
 
-        // let mut themp = 0.0;
-        // if device == THERMOMETER_1 || device == THERMOMETER_2 {
-        //     themp = rand::thread_rng().gen_range(20.0..25.0);
-        // }
-        //
-        // let mut power = 0.0;
-        // let mut status = DeviceState::Unknown;
-        // if device == SOCKET_1 || device == SOCKET_2 || device == SOCKET_3 || device == SOCKET_4 {
-        //     status = match rand::thread_rng().gen_range(0..=1) {
-        //         1 => {
-        //             power = rand::thread_rng().gen_range(100.0..2500.0);
-        //             DeviceState::On
-        //         }
-        //         _ => DeviceState::Off,
-        //     }
-        // }
-        //
-        // format!(
-        //     "статус - {}, мощность {:.2} pW, температура {:.2} tC",
-        //     status, power, themp
-        // )
-        // .into()
-        Some(String::new())
-    }
-}
-
-enum DeviceState {
+enum DeviceStatus {
     Off,
     On,
     Unknown,
 }
 
-impl fmt::Display for DeviceState {
+impl fmt::Display for DeviceStatus {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            DeviceState::Off => write!(f, "выключено"),
-            DeviceState::On => write!(f, "включено"),
-            DeviceState::Unknown => write!(f, "неизвестно"),
+            DeviceStatus::Off => write!(f, "выключено"),
+            DeviceStatus::On => write!(f, "включено"),
+            DeviceStatus::Unknown => write!(f, "неизвестно"),
         }
     }
 }
 
 fn main() {
     // Инициализация устройств
-    let socket1 = SmartSocket {
-        name: SOCKET_1.to_string(),
-        room: KITCHEN.to_string(),
-        state: DeviceState::On,
-        power: 111.222,
-    };
-    let socket2 = SmartSocket {
-        name: SOCKET_2.to_string(),
-        room: LIVING_ROOM.to_string(),
-        state: DeviceState::Off,
-        power: 0.333,
-    };
-    let thermometer = SmartThermometer {
-        room: BEDROOM.to_string(),
-        name: THERMOMETER_1.to_string(),
-        temperature: 22.33,
-    };
+    let socket1 = SmartSocket {};
+    let socket2 = SmartSocket {};
+    let thermometer = SmartThermometer {};
 
     // Инициализация дома
     let house = SmartHouse::new(
@@ -190,14 +211,14 @@ fn main() {
     let report1 = house.create_report(&info_provider_1);
 
     // Строим отчёт с использованием `BorrowingDeviceInfoProvider`.
-    // let info_provider_2 = BorrowingDeviceInfoProvider {
-    //     socket: &socket2,
-    //     thermometer: &thermometer,
-    // };
-    // let report2 = house.create_report(&info_provider_2);
+    let info_provider_2 = BorrowingDeviceInfoProvider {
+        socket: &socket2,
+        thermometer: &thermometer,
+    };
+    let report2 = house.create_report(&info_provider_2);
 
     // Выводим отчёты на экран:
-    println!("Report #1: {report1}");
-    println!("--------------------");
-    // println!("Report #2: {report2}");
+    // println!("Report #1: {report1}");
+    // println!("--------------------");
+    println!("Report #2: {report2}");
 }
