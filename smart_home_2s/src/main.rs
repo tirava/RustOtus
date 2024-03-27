@@ -86,7 +86,6 @@ impl DeviceInfoProvider for OwningDeviceInfoProvider {
                 LIVING_ROOM => {
                     status = DeviceStatus::Off;
                 }
-                BEDROOM => {}
                 _ => {
                     return None;
                 }
@@ -96,7 +95,6 @@ impl DeviceInfoProvider for OwningDeviceInfoProvider {
                     status = DeviceStatus::On;
                     power = rand::thread_rng().gen_range(500.0..1000.0);
                 }
-                LIVING_ROOM => {}
                 BEDROOM => {
                     status = DeviceStatus::Off;
                 }
@@ -125,9 +123,8 @@ impl DeviceInfoProvider for BorrowingDeviceInfoProvider<'_> {
                 }
                 LIVING_ROOM => {
                     status = DeviceStatus::On;
-                    power = rand::thread_rng().gen_range(100.0..500.0);
+                    power = rand::thread_rng().gen_range(500.0..1000.0);
                 }
-                BEDROOM => {}
                 _ => {
                     return None;
                 }
@@ -136,7 +133,6 @@ impl DeviceInfoProvider for BorrowingDeviceInfoProvider<'_> {
                 KITCHEN => {
                     status = DeviceStatus::Off;
                 }
-                LIVING_ROOM => {}
                 BEDROOM => {
                     status = DeviceStatus::On;
                     power = rand::thread_rng().gen_range(100.0..500.0);
@@ -146,18 +142,14 @@ impl DeviceInfoProvider for BorrowingDeviceInfoProvider<'_> {
                 }
             },
             THERMOMETER_1 => match room {
-                KITCHEN => {}
                 LIVING_ROOM => {
                     themp = rand::thread_rng().gen_range(25.0..30.0);
                 }
-                BEDROOM => {}
                 _ => {
                     return None;
                 }
             },
             THERMOMETER_2 => match room {
-                KITCHEN => {}
-                LIVING_ROOM => {}
                 BEDROOM => {
                     themp = rand::thread_rng().gen_range(20.0..25.0);
                 }
@@ -170,10 +162,15 @@ impl DeviceInfoProvider for BorrowingDeviceInfoProvider<'_> {
             }
         }
 
-        format!(
-            "статус - {}, мощность {:.2} pW, температура {:.2} tC",
-            status, power, themp
-        )
+        match device {
+            SOCKET_1 | SOCKET_2 => {
+                format!("статус - {}, мощность {:.2} pW", status, power)
+            }
+            THERMOMETER_1 | THERMOMETER_2 => {
+                format!("температура {:.2} tC", themp)
+            }
+            _ => String::new(),
+        }
         .into()
     }
 }
@@ -218,7 +215,7 @@ fn main() {
     let report2 = house.create_report(&info_provider_2);
 
     // Выводим отчёты на экран:
-    // println!("Report #1: {report1}");
-    // println!("--------------------");
+    println!("Report #1: {report1}");
+    print!("--------------------");
     println!("Report #2: {report2}");
 }
