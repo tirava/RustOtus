@@ -1,8 +1,6 @@
 use rand::Rng;
-use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
-use std::rc::Rc;
 
 pub const KITCHEN: &str = "Кухня";
 pub const LIVING_ROOM: &str = "Гостинная";
@@ -46,7 +44,7 @@ impl SmartHome {
         result
     }
 
-    pub fn create_report(&self, info_provider: Box<dyn DeviceInfoProvider>) -> String {
+    pub fn create_report(&self, info_provider: &mut impl DeviceInfoProvider) -> String {
         let mut report = String::new();
 
         for room in self.rooms() {
@@ -192,25 +190,25 @@ impl Socket for SmartSocket {
 }
 
 pub trait DeviceInfoProvider {
-    fn state(&self, room_name: &str, device_name: &str) -> Result<DeviceInfo, SmartHomeError>;
+    fn state(&mut self, room_name: &str, device_name: &str) -> Result<DeviceInfo, SmartHomeError>;
 }
 
 pub struct OwningDeviceInfoProvider {
     pub socket: SmartSocket,
 }
 
-pub struct BorrowingDeviceInfoProvider {
-    pub socket: Rc<RefCell<SmartSocket>>,
-    pub thermometer: Rc<RefCell<SmartThermometer>>,
+pub struct BorrowingDeviceInfoProvider<'a> {
+    pub socket: &'a mut SmartSocket,
+    pub thermometer: &'a mut SmartThermometer,
 }
 
-pub enum DeviceInfo {
+pub enum DeviceInfo<'a> {
     OwningDeviceInfoProvider(OwningDeviceInfoProvider),
-    BorrowingDeviceInfoProvider(BorrowingDeviceInfoProvider),
+    BorrowingDeviceInfoProvider(BorrowingDeviceInfoProvider<'a>),
 }
 
 impl DeviceInfoProvider for OwningDeviceInfoProvider {
-    fn state(&self, room_name: &str, device_name: &str) -> Result<DeviceInfo, SmartHomeError> {
+    fn state(&mut self, room_name: &str, device_name: &str) -> Result<DeviceInfo, SmartHomeError> {
         if device_name != self.socket.name() {
             return Err(SmartHomeError::ErrDeviceNotFound {
                 room_name: room_name.to_string(),
@@ -237,54 +235,49 @@ impl DeviceInfoProvider for OwningDeviceInfoProvider {
     }
 }
 
-impl DeviceInfoProvider for BorrowingDeviceInfoProvider {
-    fn state(&self, room_name: &str, device_name: &str) -> Result<DeviceInfo, SmartHomeError> {
-        if device_name != self.socket.borrow().name()
-            && device_name != self.thermometer.borrow().name()
-        {
+impl DeviceInfoProvider for BorrowingDeviceInfoProvider<'_> {
+    fn state(&mut self, room_name: &str, device_name: &str) -> Result<DeviceInfo, SmartHomeError> {
+        if device_name != self.socket.name() && device_name != self.thermometer.name() {
             return Err(SmartHomeError::ErrDeviceNotFound {
                 room_name: room_name.to_string(),
                 device_name: device_name.to_string(),
             });
         }
 
-        let socket = self.socket.clone();
-        let thermometer = self.thermometer.clone();
-
         match room_name {
             KITCHEN => {
-                socket.borrow_mut().set_state(DeviceState::Off)?;
-                self.thermometer.borrow_mut().temperature = rand::thread_rng().gen_range(20.0..25.0)
+                self.socket.set_state(DeviceState::Off)?;
+                self.thermometer.temperature = rand::thread_rng().gen_range(20.0..25.0)
             }
             LIVING_ROOM => {
-                socket.borrow_mut().set_state(DeviceState::Unknown)?;
-                self.thermometer.borrow_mut().temperature = rand::thread_rng().gen_range(20.0..25.0)
+                self.socket.set_state(DeviceState::Unknown)?;
+                self.thermometer.temperature = rand::thread_rng().gen_range(20.0..25.0)
             }
             BEDROOM => {
-                socket.borrow_mut().set_state(DeviceState::On)?;
-                self.thermometer.borrow_mut().temperature = rand::thread_rng().gen_range(20.0..25.0)
+                self.socket.set_state(DeviceState::On)?;
+                self.thermometer.temperature = rand::thread_rng().gen_range(20.0..25.0)
             }
             _ => {}
         }
 
         match device_name {
-            SOCKET => self.thermometer.borrow_mut().temperature = 0.0,
+            SOCKET => self.thermometer.temperature = 0.0,
             THERMOMETER => {
-                self.socket.borrow_mut().power = 0.0;
-                self.socket.borrow_mut().state = DeviceState::Unknown
+                self.socket.power = 0.0;
+                self.socket.state = DeviceState::Unknown
             }
             _ => {}
         }
 
         let info = DeviceInfo::BorrowingDeviceInfoProvider(BorrowingDeviceInfoProvider {
-            socket,
-            thermometer,
+            socket: self.socket,
+            thermometer: self.thermometer,
         });
         Ok(info)
     }
 }
 
-impl fmt::Display for DeviceInfo {
+impl fmt::Display for DeviceInfo<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             DeviceInfo::OwningDeviceInfoProvider(info) => {
@@ -299,12 +292,9 @@ impl fmt::Display for DeviceInfo {
                 write!(
                     f,
                     "статус - {}, мощность {:.2} pW, температура {:.2} tC",
-                    info.socket
-                        .borrow()
-                        .get_state()
-                        .unwrap_or(&DeviceState::Unknown),
-                    info.socket.borrow().power().unwrap_or_default(),
-                    info.thermometer.borrow().temperature().unwrap_or_default(),
+                    info.socket.get_state().unwrap_or(&DeviceState::Unknown),
+                    info.socket.power().unwrap_or_default(),
+                    info.thermometer.temperature().unwrap_or_default(),
                 )
             }
         }
