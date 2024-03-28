@@ -130,8 +130,8 @@ struct OwningDeviceInfoProvider {
 }
 
 struct BorrowingDeviceInfoProvider<'a> {
-    thermometers: Vec<&'a SmartThermometer>,
-    switches: Vec<&'a SmartSwitch>,
+    thermometers: &'a Vec<SmartThermometer>,
+    switches: &'a Vec<SmartSwitch>,
 }
 
 impl DeviceInfoProvider for OwningDeviceInfoProvider {
@@ -231,17 +231,14 @@ fn main() {
         }
     }
 
-    let thermometers = thermometers.iter().collect();
-    let switches = switches.iter().collect();
-
     // Строим отчёт с использованием `OwningDeviceInfoProvider`.
     let info_provider_1 = OwningDeviceInfoProvider { sockets };
     let report1 = house.create_report(&info_provider_1);
 
     // Строим отчёт с использованием `BorrowingDeviceInfoProvider`.
     let info_provider_2 = BorrowingDeviceInfoProvider {
-        thermometers,
-        switches,
+        thermometers: &thermometers,
+        switches: &switches,
     };
     let report2 = house.create_report(&info_provider_2);
 
