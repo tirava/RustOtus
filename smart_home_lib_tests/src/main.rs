@@ -13,6 +13,8 @@ const SWITCH_1: &str = "Выключатель-1";
 const SWITCH_2: &str = "Выключатель-2";
 
 fn main() {
+    SmartHouse::run();
+    
     // Инициализация дома
     let house = SmartHouse::new(
         "Мой умный дом".to_string(),

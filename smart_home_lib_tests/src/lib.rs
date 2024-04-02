@@ -2,13 +2,13 @@ use std::collections::{HashMap, HashSet};
 use std::fmt;
 
 pub mod prelude {
+    pub use super::BorrowingDeviceInfoProvider;
+    pub use super::DeviceStatus;
+    pub use super::OwningDeviceInfoProvider;
     pub use super::SmartHouse;
     pub use super::SmartSocket;
     pub use super::SmartSwitch;
     pub use super::SmartThermometer;
-    pub use super::DeviceStatus;
-    pub use super::OwningDeviceInfoProvider;
-    pub use super::BorrowingDeviceInfoProvider;
 }
 
 pub struct SmartHouse {
@@ -18,6 +18,8 @@ pub struct SmartHouse {
 }
 
 impl SmartHouse {
+    pub fn run() {}
+
     pub fn new(name: String, address: String, devices: HashMap<&str, Vec<&str>>) -> Self {
         Self {
             name,
