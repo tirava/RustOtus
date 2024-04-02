@@ -18,7 +18,7 @@ pub struct SmartHouse {
 }
 
 impl SmartHouse {
-    pub fn run() {}
+    pub fn r#use() {}
 
     pub fn new(name: String, address: String, devices: HashMap<&str, Vec<&str>>) -> Self {
         Self {
