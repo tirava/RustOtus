@@ -1,8 +1,5 @@
 use rand::Rng;
-use smart_home_2s::{
-    BorrowingDeviceInfoProvider, DeviceStatus, OwningDeviceInfoProvider, SmartHouse, SmartSocket,
-    SmartSwitch, SmartThermometer,
-};
+use smart_home_lib_tests::prelude::*;
 use std::collections::HashMap;
 
 const KITCHEN: &str = "Кухня";
