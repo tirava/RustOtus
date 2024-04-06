@@ -31,6 +31,10 @@ impl SmartHouse {
         }
     }
 
+    pub fn name(&self) -> &str {
+        self.name.as_str()
+    }
+
     pub fn rooms(&self) -> Vec<&String> {
         self.devices.keys().collect()
     }
