@@ -5,7 +5,7 @@ use std::fmt;
 pub struct SmartHouse {
     name: String,
     address: String,
-    devices: HashMap<String, Vec<String>>,
+    devices: HashMap<String, HashSet<String>>,
 }
 
 impl SmartHouse {
@@ -17,16 +17,7 @@ impl SmartHouse {
             address,
             devices: devices
                 .iter()
-                .map(|(k, v)| {
-                    (k.to_string(), {
-                        // dedup
-                        v.iter()
-                            .collect::<HashSet<_>>()
-                            .iter()
-                            .map(|s| s.to_string())
-                            .collect()
-                    })
-                })
+                .map(|(k, v)| (k.to_string(), v.iter().map(|s| s.to_string()).collect()))
                 .collect(),
         }
     }
