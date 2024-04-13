@@ -26,8 +26,12 @@ impl SmartHouse {
         self.name.as_str()
     }
 
-    pub fn rooms(&self) -> Vec<&str> {
-        self.devices.keys().map(|s| s.as_str()).collect()
+    pub fn rooms(&self) -> Option<Vec<&str>> {
+        let rooms: Vec<_> = self.devices.keys().map(|s| s.as_str()).collect();
+        match rooms.is_empty() {
+            true => None,
+            false => Some(rooms),
+        }
     }
 
     pub fn devices(&self, room: &str) -> Vec<&str> {
@@ -46,7 +50,10 @@ impl SmartHouse {
             "Дом", self.name, "Адрес", self.address
         );
 
-        let mut rooms = self.rooms();
+        let mut rooms = match self.rooms() {
+            Some(rooms) => rooms,
+            None => return Err(SmartHouseError::ErrRoomsNotFound),
+        };
         rooms.sort();
 
         for room in rooms {

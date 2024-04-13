@@ -42,7 +42,10 @@ pub(crate) fn init_devices(
     let mut thermometers = vec![];
     let mut switches = vec![];
 
-    for room in house.rooms() {
+    let rooms = house.rooms();
+    assert!(rooms.is_some());
+
+    for room in rooms.unwrap() {
         for device in house.devices(room) {
             match device {
                 SOCKET_1 | SOCKET_2 => {

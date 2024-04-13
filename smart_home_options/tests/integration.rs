@@ -10,7 +10,11 @@ fn test_house_new() {
     let house = new_house();
 
     assert_eq!(house.name(), HOUSE_NAME);
-    assert!(house.rooms().len() > 1);
+
+    let rooms = house.rooms();
+    assert!(rooms.is_some());
+    
+    assert!(rooms.unwrap().len() > 1);
 }
 
 // Помещение имеет уникальное название и содержит названия нескольких устройств.
@@ -18,8 +22,11 @@ fn test_house_new() {
 fn test_house_rooms() {
     let house = new_house();
 
-    let mut rooms = house.rooms();
+    let rooms = house.rooms();
+    assert!(rooms.is_some());
+    let mut rooms = rooms.unwrap();
     rooms.sort();
+
     assert_eq!(rooms, vec![LIVING_ROOM, KITCHEN, BEDROOM]);
 
     rooms
@@ -34,6 +41,9 @@ fn test_house_devices() {
     let house = new_house();
 
     let rooms = house.rooms();
+    assert!(rooms.is_some());
+    let rooms = rooms.unwrap();
+
     rooms.into_iter().for_each(|room| {
         let mut devices = house.devices(room);
         devices.sort();

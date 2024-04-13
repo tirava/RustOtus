@@ -29,7 +29,12 @@ fn main() -> Result<(), SmartHouseError> {
     let mut thermometers = vec![];
     let mut switches = vec![];
 
-    for room in house.rooms() {
+    let rooms = match house.rooms() {
+        Some(rooms) => rooms,
+        None => return Err(SmartHouseError::ErrRoomsNotFound),
+    };
+
+    for room in rooms {
         for device in house.devices(room) {
             match device {
                 SOCKET_1 | SOCKET_2 => {
@@ -86,6 +91,6 @@ fn main() -> Result<(), SmartHouseError> {
     println!("Report #1: {report1}");
     println!("--------------------");
     println!("Report #2: {report2}");
-    
+
     Ok(())
 }
