@@ -29,15 +29,15 @@ impl SmartHouse {
     pub fn rooms(&self) -> Option<Vec<&str>> {
         let rooms: Vec<_> = self.devices.keys().map(|s| s.as_str()).collect();
         match rooms.is_empty() {
-            true => None,
             false => Some(rooms),
+            true => None,
         }
     }
 
-    pub fn devices(&self, room: &str) -> Vec<&str> {
+    pub fn devices(&self, room: &str) -> Option<Vec<&str>> {
         match self.devices.get(room) {
-            Some(devices) => devices.iter().map(|s| s.as_str()).collect(),
-            None => Vec::new(),
+            Some(devices) => Some(devices.iter().map(|s| s.as_str()).collect()),
+            None => None,
         }
     }
 
@@ -58,7 +58,10 @@ impl SmartHouse {
 
         for room in rooms {
             report += format!(" {:13}: {}\n {:13}:\n", "Комната", room, "Устройства").as_str();
-            let mut devices = self.devices(room);
+            let mut devices = match self.devices(room) {
+                Some(devices) => devices,
+                None => return Err(SmartHouseError::ErrDevicesNotFound),
+            };
             devices.sort();
 
             for device in devices {

@@ -46,7 +46,9 @@ pub(crate) fn init_devices(
     assert!(rooms.is_some());
 
     for room in rooms.unwrap() {
-        for device in house.devices(room) {
+        let devices = house.devices(room);
+        assert!(devices.is_some());
+        for device in devices.unwrap() {
             match device {
                 SOCKET_1 | SOCKET_2 => {
                     let mut socket = SmartSocket::new(

@@ -35,7 +35,11 @@ fn main() -> Result<(), SmartHouseError> {
     };
 
     for room in rooms {
-        for device in house.devices(room) {
+        let devices = match house.devices(room) {
+            Some(devices) => devices,
+            None => return Err(SmartHouseError::ErrDevicesNotFound),
+        };
+        for device in devices {
             match device {
                 SOCKET_1 | SOCKET_2 => {
                     let mut socket = SmartSocket::new(

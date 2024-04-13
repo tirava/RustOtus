@@ -13,7 +13,7 @@ fn test_house_new() {
 
     let rooms = house.rooms();
     assert!(rooms.is_some());
-    
+
     assert!(rooms.unwrap().len() > 1);
 }
 
@@ -29,9 +29,11 @@ fn test_house_rooms() {
 
     assert_eq!(rooms, vec![LIVING_ROOM, KITCHEN, BEDROOM]);
 
-    rooms
-        .into_iter()
-        .for_each(|room| assert!(house.devices(room).len() > 1));
+    rooms.into_iter().for_each(|room| {
+        let devices = house.devices(room);
+        assert!(devices.is_some());
+        assert!(devices.unwrap().len() > 1)
+    });
 }
 
 // Устройство имеет уникальное в рамках помещения имя.
@@ -45,8 +47,11 @@ fn test_house_devices() {
     let rooms = rooms.unwrap();
 
     rooms.into_iter().for_each(|room| {
-        let mut devices = house.devices(room);
+        let devices = house.devices(room);
+        assert!(devices.is_some());
+        let mut devices = devices.unwrap();
         devices.sort();
+
         match room {
             LIVING_ROOM => assert_eq!(devices, vec![SWITCH_2, SOCKET_1, THERMOMETER_1]),
             KITCHEN => assert_eq!(devices, vec![SWITCH_1, SOCKET_1, SOCKET_2]),
