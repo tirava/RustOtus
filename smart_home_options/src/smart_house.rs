@@ -1,6 +1,6 @@
 use crate::device_info_provider::DeviceInfoProvider;
 use std::collections::{HashMap, HashSet};
-use std::fmt;
+use std::{error, fmt, io};
 
 pub struct SmartHouse {
     name: String,
@@ -51,7 +51,7 @@ impl SmartHouse {
 
         let mut rooms = match self.rooms() {
             Some(rooms) => rooms,
-            None => return Err(SmartHouseError::ErrRoomsNotFound),
+            None => return Err(SmartHouseError::RoomsNotFoundError),
         };
         rooms.sort();
 
@@ -59,7 +59,7 @@ impl SmartHouse {
             report += format!(" {:13}: {}\n {:13}:\n", "Комната", room, "Устройства").as_str();
             let mut devices = match self.devices(room) {
                 Some(devices) => devices,
-                None => return Err(SmartHouseError::ErrDevicesNotFound),
+                None => return Err(SmartHouseError::DevicesNotFoundError),
             };
             devices.sort();
 
@@ -81,19 +81,43 @@ impl SmartHouse {
 }
 
 pub enum SmartHouseError {
-    ErrRoomsNotFound,
-    ErrDevicesNotFound,
-    ErrUnknown,
+    RoomsNotFoundError,
+    DevicesNotFoundError,
+    IoError(io::Error),
 }
 
 impl fmt::Debug for SmartHouseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            SmartHouseError::ErrRoomsNotFound => {
+            SmartHouseError::RoomsNotFoundError => {
+                write!(f, "rooms not found")
+            }
+            SmartHouseError::DevicesNotFoundError => write!(f, "devices not found"),
+            SmartHouseError::IoError(err) => {
+                write!(f, "i/o error: {}", err)
+            }
+        }
+    }
+}
+
+impl fmt::Display for SmartHouseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SmartHouseError::RoomsNotFoundError => {
                 write!(f, "комнаты не найдены")
             }
-            SmartHouseError::ErrDevicesNotFound => write!(f, "устройства не найдены"),
-            SmartHouseError::ErrUnknown => write!(f, "неизвестная ошибка"),
+            SmartHouseError::DevicesNotFoundError => write!(f, "устройства не найдены"),
+            SmartHouseError::IoError(err) => {
+                write!(f, "ошибка ввода-вывода: {}", err)
+            }
         }
+    }
+}
+
+impl error::Error for SmartHouseError {}
+
+impl From<io::Error> for SmartHouseError {
+    fn from(err: io::Error) -> Self {
+        SmartHouseError::IoError(err)
     }
 }

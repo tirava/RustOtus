@@ -31,13 +31,13 @@ fn main() -> Result<(), SmartHouseError> {
 
     let rooms = match house.rooms() {
         Some(rooms) => rooms,
-        None => return Err(SmartHouseError::ErrRoomsNotFound),
+        None => return Err(SmartHouseError::RoomsNotFoundError),
     };
 
     for room in rooms {
         let devices = match house.devices(room) {
             Some(devices) => devices,
-            None => return Err(SmartHouseError::ErrDevicesNotFound),
+            None => return Err(SmartHouseError::DevicesNotFoundError),
         };
         for device in devices {
             match device {
@@ -59,6 +59,7 @@ fn main() -> Result<(), SmartHouseError> {
                 THERMOMETER_1 | THERMOMETER_2 => {
                     let mut thermometer =
                         SmartThermometer::new(device.to_string(), room.to_string(), 0.0);
+                    thermometer.connect("https://example.com")?;
                     thermometer.temp = rand::thread_rng().gen_range(20.0..30.0);
                     thermometers.push(thermometer);
                 }
