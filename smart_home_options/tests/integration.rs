@@ -37,7 +37,7 @@ fn test_house_devices() {
     rooms.into_iter().for_each(|room| {
         let mut devices = house.devices(room);
         devices.sort();
-        match room.as_str() {
+        match room {
             LIVING_ROOM => assert_eq!(devices, vec![SWITCH_2, SOCKET_1, THERMOMETER_1]),
             KITCHEN => assert_eq!(devices, vec![SWITCH_1, SOCKET_1, SOCKET_2]),
             BEDROOM => assert_eq!(devices, vec![SWITCH_1, SWITCH_2, THERMOMETER_2]),
