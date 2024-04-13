@@ -35,10 +35,9 @@ impl SmartHouse {
     }
 
     pub fn devices(&self, room: &str) -> Option<Vec<&str>> {
-        match self.devices.get(room) {
-            Some(devices) => Some(devices.iter().map(|s| s.as_str()).collect()),
-            None => None,
-        }
+        self.devices
+            .get(room)
+            .map(|devices| devices.iter().map(|s| s.as_str()).collect())
     }
 
     pub fn create_report(
