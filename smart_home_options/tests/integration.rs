@@ -59,14 +59,16 @@ fn test_house_report() {
 
     let info_provider_1 = OwningDeviceInfoProvider { sockets };
     let report1 = house.create_report(&info_provider_1);
+    assert!(report1.is_ok());
 
     let info_provider_2 = BorrowingDeviceInfoProvider {
         thermometers: &thermometers,
         switches: &switches,
     };
     let report2 = house.create_report(&info_provider_2);
+    assert!(report2.is_ok());
 
-    assert_eq!(report1,  "\n \
+    assert_eq!(report1.unwrap(),  "\n \
         Дом          : ".to_owned() +HOUSE_NAME+ "\n \
         Адрес        : "+HOUSE_ADDRESS+ "\n\n \
         Комната      : Гостинная\n \
@@ -85,7 +87,7 @@ fn test_house_report() {
                      : Выключатель-2, состояние: в источнике информации это устроство не обнаружено\n              \
                      : Термометр-2, состояние: в источнике информации это устроство не обнаружено\n\n");
 
-    assert_eq!(report2, "\n \
+    assert_eq!(report2.unwrap(), "\n \
         Дом          : ".to_owned() +HOUSE_NAME+ "\n \
         Адрес        : "+HOUSE_ADDRESS+ "\n\n \
         Комната      : Гостинная\n \

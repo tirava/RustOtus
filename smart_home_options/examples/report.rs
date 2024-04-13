@@ -12,7 +12,7 @@ const SOCKET_2: &str = "Розетка-2";
 const SWITCH_1: &str = "Выключатель-1";
 const SWITCH_2: &str = "Выключатель-2";
 
-fn main() {
+fn main() -> Result<(), SmartHouseError> {
     // Инициализация дома
     let house = SmartHouse::new(
         "Мой умный дом".to_string(),
@@ -73,17 +73,19 @@ fn main() {
 
     // Строим отчёт с использованием `OwningDeviceInfoProvider`.
     let info_provider_1 = OwningDeviceInfoProvider { sockets };
-    let report1 = house.create_report(&info_provider_1);
+    let report1 = house.create_report(&info_provider_1)?;
 
     // Строим отчёт с использованием `BorrowingDeviceInfoProvider`.
     let info_provider_2 = BorrowingDeviceInfoProvider {
         thermometers: &thermometers,
         switches: &switches,
     };
-    let report2 = house.create_report(&info_provider_2);
+    let report2 = house.create_report(&info_provider_2)?;
 
     // Выводим отчёты на экран:
     println!("Report #1: {report1}");
     println!("--------------------");
     println!("Report #2: {report2}");
+    
+    Ok(())
 }

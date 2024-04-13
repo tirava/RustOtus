@@ -1,5 +1,6 @@
 use crate::device_info_provider::DeviceInfoProvider;
 use std::collections::{HashMap, HashSet};
+use std::fmt;
 
 pub struct SmartHouse {
     name: String,
@@ -36,7 +37,10 @@ impl SmartHouse {
         }
     }
 
-    pub fn create_report(&self, info_provider: &impl DeviceInfoProvider) -> String {
+    pub fn create_report(
+        &self,
+        info_provider: &impl DeviceInfoProvider,
+    ) -> Result<String, SmartHouseError> {
         let mut report = format!(
             "\n {:13}: {}\n {:13}: {}\n\n",
             "Дом", self.name, "Адрес", self.address
@@ -63,6 +67,24 @@ impl SmartHouse {
             report += "\n";
         }
 
-        report
+        Ok(report)
+    }
+}
+
+pub enum SmartHouseError {
+    ErrRoomsNotFound,
+    ErrDevicesNotFound,
+    ErrUnknown,
+}
+
+impl fmt::Debug for SmartHouseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SmartHouseError::ErrRoomsNotFound => {
+                write!(f, "комнаты не найдены")
+            }
+            SmartHouseError::ErrDevicesNotFound => write!(f, "устройства не найдены"),
+            SmartHouseError::ErrUnknown => write!(f, "неизвестная ошибка"),
+        }
     }
 }
