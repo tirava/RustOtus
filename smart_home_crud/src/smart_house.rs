@@ -34,25 +34,22 @@ impl SmartHouse {
         }
     }
 
-    pub fn add_room(&mut self, room: &str) -> Result<Vec<&str>, SmartHouseError> {
+    pub fn add_room(&mut self, room: &str) -> Result<(), SmartHouseError> {
         if self.devices.contains_key(room) {
             return Err(SmartHouseError::RoomAlreadyExistsError);
         }
         self.devices.insert(room.to_string(), HashSet::new());
 
-        Ok(self.devices.keys().map(|s| s.as_str()).collect())
+        Ok(())
     }
 
-    pub fn remove_room(&mut self, room: &str) -> Result<Option<Vec<&str>>, SmartHouseError> {
+    pub fn remove_room(&mut self, room: &str) -> Result<(), SmartHouseError> {
         if !self.devices.contains_key(room) {
             return Err(SmartHouseError::RoomNotFoundError);
         }
         self.devices.remove(room);
 
-        match self.rooms() {
-            Some(rooms) => Ok(Some(rooms)),
-            None => Ok(None),
-        }
+        Ok(())
     }
 
     pub fn devices(&self, room: &str) -> Option<Vec<&str>> {
@@ -61,7 +58,7 @@ impl SmartHouse {
             .map(|devices| devices.iter().map(|s| s.as_str()).collect())
     }
 
-    pub fn add_device(&mut self, room: &str, device: &str) -> Result<Vec<&str>, SmartHouseError> {
+    pub fn add_device(&mut self, room: &str, device: &str) -> Result<(), SmartHouseError> {
         if !self.devices.contains_key(room) {
             return Err(SmartHouseError::RoomNotFoundError);
         }
@@ -71,14 +68,10 @@ impl SmartHouse {
         };
         device_room.insert(device.to_string());
 
-        Ok(self.devices.keys().map(|s| s.as_str()).collect())
+        Ok(())
     }
 
-    pub fn remove_device(
-        &mut self,
-        room: &str,
-        device: &str,
-    ) -> Result<Option<Vec<&str>>, SmartHouseError> {
+    pub fn remove_device(&mut self, room: &str, device: &str) -> Result<(), SmartHouseError> {
         let device_room = match self.devices.get_mut(room) {
             Some(device_room) => device_room,
             None => return Err(SmartHouseError::RoomNotFoundError),
@@ -87,10 +80,7 @@ impl SmartHouse {
             return Err(SmartHouseError::DeviceNotFoundError);
         }
 
-        match self.devices(room) {
-            Some(devices) => Ok(Some(devices)),
-            None => Ok(None),
-        }
+        Ok(())
     }
 
     pub fn create_report(

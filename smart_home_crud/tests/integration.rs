@@ -21,7 +21,7 @@ fn test_house_new() {
 // Библиотека также позволяет добавлять и удалять помещения.
 #[test]
 fn test_house_rooms() {
-    let house = new_house();
+    let mut house = new_house();
 
     let rooms = house.rooms();
     assert!(rooms.is_some());
@@ -35,8 +35,6 @@ fn test_house_rooms() {
         assert!(devices.is_some());
         assert!(devices.unwrap().len() > 1)
     });
-
-    let mut house = new_house();
 
     assert!(house.add_room(HALLWAY).is_ok());
     let rooms = house.rooms();
@@ -60,7 +58,7 @@ fn test_house_rooms() {
 // а также добавлять и удалять устройства.
 #[test]
 fn test_house_devices() {
-    let house = new_house();
+    let mut house = new_house();
 
     let rooms = house.rooms();
     assert!(rooms.is_some());
@@ -78,8 +76,6 @@ fn test_house_devices() {
             _ => panic!("Unknown room: {}", room),
         }
     });
-
-    let mut house = new_house();
 
     assert!(house.add_device(LIVING_ROOM, SOCKET_3).is_ok());
     let devices = house.devices(LIVING_ROOM);

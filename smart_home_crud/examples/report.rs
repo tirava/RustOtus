@@ -107,9 +107,6 @@ fn main() -> Result<(), SmartHouseError> {
     println!("Report #2: {report2}");
 
     // Удаление помещений и устройств
-    house.remove_device(HALLWAY, SOCKET_3)?;
-    match house.remove_room(HALLWAY) {
-        Err(e) => Err(e),
-        _ => Ok(()),
-    }
+    house.remove_device("HALLWAY", SOCKET_3)?;
+    house.remove_room(HALLWAY)
 }
