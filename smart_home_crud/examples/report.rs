@@ -10,6 +10,7 @@ const THERMOMETER_1: &str = "Термометр-1";
 const THERMOMETER_2: &str = "Термометр-2";
 const SOCKET_1: &str = "Розетка-1";
 const SOCKET_2: &str = "Розетка-2";
+const SOCKET_3: &str = "Розетка-3";
 const SWITCH_1: &str = "Выключатель-1";
 const SWITCH_2: &str = "Выключатель-2";
 
@@ -25,8 +26,9 @@ fn main() -> Result<(), SmartHouseError> {
         ]),
     );
 
-    // Добавление помещений
+    // Добавление помещений и устройств в них
     house.add_room(HALLWAY)?;
+    house.add_device(HALLWAY, SOCKET_3)?;
 
     // Инициализация устройств в доме со случайными показателями
     let mut sockets = vec![];
@@ -45,7 +47,7 @@ fn main() -> Result<(), SmartHouseError> {
         };
         for device in devices {
             match device {
-                SOCKET_1 | SOCKET_2 => {
+                SOCKET_1 | SOCKET_2 | SOCKET_3 => {
                     let mut socket = SmartSocket::new(
                         device.to_string(),
                         room.to_string(),
@@ -55,8 +57,11 @@ fn main() -> Result<(), SmartHouseError> {
                     if device == SOCKET_1 {
                         socket.status = DeviceStatus::On;
                         socket.power = rand::thread_rng().gen_range(10.0..3000.0);
-                    } else {
+                    } else if device == SOCKET_2 {
                         socket.status = DeviceStatus::Off;
+                    } else {
+                        socket.status = DeviceStatus::On;
+                        socket.power = rand::thread_rng().gen_range(1.0..10.0);
                     }
                     sockets.push(socket);
                 }
@@ -101,9 +106,10 @@ fn main() -> Result<(), SmartHouseError> {
     println!("--------------------");
     println!("Report #2: {report2}");
 
-    // Удаление помещений
+    // Удаление помещений и устройств
+    house.remove_device(HALLWAY, SOCKET_3)?;
     match house.remove_room(HALLWAY) {
-        Ok(_) => Ok(()),
         Err(e) => Err(e),
+        _ => Ok(()),
     }
 }

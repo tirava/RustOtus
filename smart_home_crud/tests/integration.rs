@@ -27,6 +27,7 @@ fn test_house_rooms() {
     assert!(rooms.is_some());
     let mut rooms = rooms.unwrap();
     rooms.sort();
+
     assert_eq!(rooms, vec![LIVING_ROOM, KITCHEN, BEDROOM]);
 
     rooms.into_iter().for_each(|room| {
@@ -42,20 +43,29 @@ fn test_house_rooms() {
     assert!(rooms.is_some());
     let mut rooms = rooms.unwrap();
     rooms.sort();
+
     assert_eq!(rooms, vec![LIVING_ROOM, KITCHEN, HALLWAY, BEDROOM]);
+
+    assert!(house.remove_room(HALLWAY).is_ok());
+    let rooms = house.rooms();
+    assert!(rooms.is_some());
+    let mut rooms = rooms.unwrap();
+    rooms.sort();
+
+    assert_eq!(rooms, vec![LIVING_ROOM, KITCHEN, BEDROOM]);
 }
 
 // Устройство имеет уникальное в рамках помещения имя.
-// Библиотека позволяет получать список устройств в помещении.
+// Библиотека позволяет получать список устройств в помещении,
+// а также добавлять и удалять устройства.
 #[test]
 fn test_house_devices() {
     let house = new_house();
 
     let rooms = house.rooms();
     assert!(rooms.is_some());
-    let rooms = rooms.unwrap();
 
-    rooms.into_iter().for_each(|room| {
+    rooms.unwrap().into_iter().for_each(|room| {
         let devices = house.devices(room);
         assert!(devices.is_some());
         let mut devices = devices.unwrap();
@@ -68,6 +78,24 @@ fn test_house_devices() {
             _ => panic!("Unknown room: {}", room),
         }
     });
+
+    let mut house = new_house();
+
+    assert!(house.add_device(LIVING_ROOM, SOCKET_3).is_ok());
+    let devices = house.devices(LIVING_ROOM);
+    assert!(devices.is_some());
+    let mut devices = devices.unwrap();
+    devices.sort();
+
+    assert_eq!(devices, vec![SWITCH_2, SOCKET_1, SOCKET_3, THERMOMETER_1]);
+
+    assert!(house.remove_device(LIVING_ROOM, SOCKET_3).is_ok());
+    let devices = house.devices(LIVING_ROOM);
+    assert!(devices.is_some());
+    let mut devices = devices.unwrap();
+    devices.sort();
+
+    assert_eq!(devices, vec![SWITCH_2, SOCKET_1, THERMOMETER_1])
 }
 
 // Библиотека имеет функцию, возвращающую текстовый отчёт о состоянии дома.

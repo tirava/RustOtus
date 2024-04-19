@@ -61,6 +61,38 @@ impl SmartHouse {
             .map(|devices| devices.iter().map(|s| s.as_str()).collect())
     }
 
+    pub fn add_device(&mut self, room: &str, device: &str) -> Result<Vec<&str>, SmartHouseError> {
+        if !self.devices.contains_key(room) {
+            return Err(SmartHouseError::RoomNotFoundError);
+        }
+        let device_room = match self.devices.get_mut(room) {
+            Some(device_room) => device_room,
+            None => return Err(SmartHouseError::RoomNotFoundError),
+        };
+        device_room.insert(device.to_string());
+
+        Ok(self.devices.keys().map(|s| s.as_str()).collect())
+    }
+
+    pub fn remove_device(
+        &mut self,
+        room: &str,
+        device: &str,
+    ) -> Result<Option<Vec<&str>>, SmartHouseError> {
+        let device_room = match self.devices.get_mut(room) {
+            Some(device_room) => device_room,
+            None => return Err(SmartHouseError::RoomNotFoundError),
+        };
+        if !device_room.remove(device) {
+            return Err(SmartHouseError::DeviceNotFoundError);
+        }
+
+        match self.devices(room) {
+            Some(devices) => Ok(Some(devices)),
+            None => Ok(None),
+        }
+    }
+
     pub fn create_report(
         &self,
         info_provider: &impl DeviceInfoProvider,
@@ -106,6 +138,7 @@ pub enum SmartHouseError {
     RoomNotFoundError,
     RoomAlreadyExistsError,
     DevicesNotFoundError,
+    DeviceNotFoundError,
     DeviceAlreadyExistsError,
     IoError(io::Error),
 }
@@ -119,6 +152,7 @@ impl fmt::Debug for SmartHouseError {
             SmartHouseError::RoomNotFoundError => write!(f, "room not found"),
             SmartHouseError::RoomAlreadyExistsError => write!(f, "room already exists"),
             SmartHouseError::DevicesNotFoundError => write!(f, "devices not found"),
+            SmartHouseError::DeviceNotFoundError => write!(f, "device not found"),
             SmartHouseError::DeviceAlreadyExistsError => write!(f, "device already exists"),
             SmartHouseError::IoError(err) => {
                 write!(f, "i/o error: {}", err)
@@ -136,6 +170,7 @@ impl fmt::Display for SmartHouseError {
             SmartHouseError::RoomNotFoundError => write!(f, "комната не найдена"),
             SmartHouseError::RoomAlreadyExistsError => write!(f, "комната уже существует"),
             SmartHouseError::DevicesNotFoundError => write!(f, "устройства не найдены"),
+            SmartHouseError::DeviceNotFoundError => write!(f, "устройство не найдено"),
             SmartHouseError::DeviceAlreadyExistsError => write!(f, "устройство уже существует"),
             SmartHouseError::IoError(err) => {
                 write!(f, "ошибка ввода-вывода: {}", err)

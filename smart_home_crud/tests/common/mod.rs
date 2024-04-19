@@ -11,6 +11,7 @@ pub const THERMOMETER_1: &str = "Термометр-1";
 pub const THERMOMETER_2: &str = "Термометр-2";
 pub const SOCKET_1: &str = "Розетка-1";
 pub const SOCKET_2: &str = "Розетка-2";
+pub const SOCKET_3: &str = "Розетка-3";
 pub const SWITCH_1: &str = "Выключатель-1";
 pub const SWITCH_2: &str = "Выключатель-2";
 
