@@ -18,6 +18,7 @@ fn test_house_new() {
 }
 
 // Помещение имеет уникальное название и содержит названия нескольких устройств.
+// Библиотека также позволяет добавлять и удалять помещения.
 #[test]
 fn test_house_rooms() {
     let house = new_house();
@@ -26,7 +27,6 @@ fn test_house_rooms() {
     assert!(rooms.is_some());
     let mut rooms = rooms.unwrap();
     rooms.sort();
-
     assert_eq!(rooms, vec![LIVING_ROOM, KITCHEN, BEDROOM]);
 
     rooms.into_iter().for_each(|room| {
@@ -34,6 +34,15 @@ fn test_house_rooms() {
         assert!(devices.is_some());
         assert!(devices.unwrap().len() > 1)
     });
+
+    let mut house = new_house();
+
+    assert!(house.add_room(HALLWAY).is_ok());
+    let rooms = house.rooms();
+    assert!(rooms.is_some());
+    let mut rooms = rooms.unwrap();
+    rooms.sort();
+    assert_eq!(rooms, vec![LIVING_ROOM, KITCHEN, HALLWAY, BEDROOM]);
 }
 
 // Устройство имеет уникальное в рамках помещения имя.

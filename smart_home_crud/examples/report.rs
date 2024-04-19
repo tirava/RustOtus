@@ -5,6 +5,7 @@ use std::collections::HashMap;
 const KITCHEN: &str = "Кухня";
 const LIVING_ROOM: &str = "Гостинная";
 const BEDROOM: &str = "Спальня";
+const HALLWAY: &str = "Прихожая";
 const THERMOMETER_1: &str = "Термометр-1";
 const THERMOMETER_2: &str = "Термометр-2";
 const SOCKET_1: &str = "Розетка-1";
@@ -14,7 +15,7 @@ const SWITCH_2: &str = "Выключатель-2";
 
 fn main() -> Result<(), SmartHouseError> {
     // Инициализация дома
-    let house = SmartHouse::new(
+    let mut house = SmartHouse::new(
         "Мой умный дом".to_string(),
         "ул. Умных домов, д.1, кв.2".to_string(),
         HashMap::from([
@@ -23,6 +24,9 @@ fn main() -> Result<(), SmartHouseError> {
             (BEDROOM, vec![THERMOMETER_2, SWITCH_1, SWITCH_2]),
         ]),
     );
+
+    // Добавление помещений
+    house.add_room(HALLWAY)?;
 
     // Инициализация устройств в доме со случайными показателями
     let mut sockets = vec![];
@@ -97,5 +101,9 @@ fn main() -> Result<(), SmartHouseError> {
     println!("--------------------");
     println!("Report #2: {report2}");
 
-    Ok(())
+    // Удаление помещений
+    match house.remove_room(HALLWAY) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e),
+    }
 }

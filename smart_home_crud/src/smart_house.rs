@@ -34,6 +34,27 @@ impl SmartHouse {
         }
     }
 
+    pub fn add_room(&mut self, room: &str) -> Result<Vec<&str>, SmartHouseError> {
+        if self.devices.contains_key(room) {
+            return Err(SmartHouseError::RoomAlreadyExistsError);
+        }
+        self.devices.insert(room.to_string(), HashSet::new());
+
+        Ok(self.devices.keys().map(|s| s.as_str()).collect())
+    }
+
+    pub fn remove_room(&mut self, room: &str) -> Result<Option<Vec<&str>>, SmartHouseError> {
+        if !self.devices.contains_key(room) {
+            return Err(SmartHouseError::RoomNotFoundError);
+        }
+        self.devices.remove(room);
+
+        match self.rooms() {
+            Some(rooms) => Ok(Some(rooms)),
+            None => Ok(None),
+        }
+    }
+
     pub fn devices(&self, room: &str) -> Option<Vec<&str>> {
         self.devices
             .get(room)
@@ -82,7 +103,10 @@ impl SmartHouse {
 
 pub enum SmartHouseError {
     RoomsNotFoundError,
+    RoomNotFoundError,
+    RoomAlreadyExistsError,
     DevicesNotFoundError,
+    DeviceAlreadyExistsError,
     IoError(io::Error),
 }
 
@@ -92,7 +116,10 @@ impl fmt::Debug for SmartHouseError {
             SmartHouseError::RoomsNotFoundError => {
                 write!(f, "rooms not found")
             }
+            SmartHouseError::RoomNotFoundError => write!(f, "room not found"),
+            SmartHouseError::RoomAlreadyExistsError => write!(f, "room already exists"),
             SmartHouseError::DevicesNotFoundError => write!(f, "devices not found"),
+            SmartHouseError::DeviceAlreadyExistsError => write!(f, "device already exists"),
             SmartHouseError::IoError(err) => {
                 write!(f, "i/o error: {}", err)
             }
@@ -106,7 +133,10 @@ impl fmt::Display for SmartHouseError {
             SmartHouseError::RoomsNotFoundError => {
                 write!(f, "комнаты не найдены")
             }
+            SmartHouseError::RoomNotFoundError => write!(f, "комната не найдена"),
+            SmartHouseError::RoomAlreadyExistsError => write!(f, "комната уже существует"),
             SmartHouseError::DevicesNotFoundError => write!(f, "устройства не найдены"),
+            SmartHouseError::DeviceAlreadyExistsError => write!(f, "устройство уже существует"),
             SmartHouseError::IoError(err) => {
                 write!(f, "ошибка ввода-вывода: {}", err)
             }

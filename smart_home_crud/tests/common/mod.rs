@@ -6,6 +6,7 @@ pub const HOUSE_ADDRESS: &str = "ул. Умных домов, д.1, кв.2";
 pub const KITCHEN: &str = "Кухня";
 pub const LIVING_ROOM: &str = "Гостинная";
 pub const BEDROOM: &str = "Спальня";
+pub const HALLWAY: &str = "Прихожая";
 pub const THERMOMETER_1: &str = "Термометр-1";
 pub const THERMOMETER_2: &str = "Термометр-2";
 pub const SOCKET_1: &str = "Розетка-1";
