@@ -36,8 +36,9 @@ impl SmartHouse {
 
     pub fn add_room(&mut self, room: &str) -> Result<(), SmartHouseError> {
         if self.devices.contains_key(room) {
-            return Err(SmartHouseError::RoomAlreadyExistsError);
+            return Err(SmartHouseError::RoomAlreadyExistsError(room.to_string()));
         }
+
         self.devices.insert(room.to_string(), HashSet::new());
 
         Ok(())
@@ -45,8 +46,9 @@ impl SmartHouse {
 
     pub fn remove_room(&mut self, room: &str) -> Result<(), SmartHouseError> {
         if !self.devices.contains_key(room) {
-            return Err(SmartHouseError::RoomNotFoundError);
+            return Err(SmartHouseError::RoomNotFoundError(room.to_string()));
         }
+
         self.devices.remove(room);
 
         Ok(())
@@ -59,14 +61,17 @@ impl SmartHouse {
     }
 
     pub fn add_device(&mut self, room: &str, device: &str) -> Result<(), SmartHouseError> {
-        if !self.devices.contains_key(room) {
-            return Err(SmartHouseError::RoomNotFoundError);
-        }
         let device_room = match self.devices.get_mut(room) {
             Some(device_room) => device_room,
-            None => return Err(SmartHouseError::RoomNotFoundError),
+            None => return Err(SmartHouseError::RoomNotFoundError(room.to_string())),
         };
-        device_room.insert(device.to_string());
+
+        if !device_room.insert(device.to_string()) {
+            return Err(SmartHouseError::DeviceAlreadyExistsError(
+                room.to_string(),
+                device.to_string(),
+            ));
+        }
 
         Ok(())
     }
@@ -74,10 +79,14 @@ impl SmartHouse {
     pub fn remove_device(&mut self, room: &str, device: &str) -> Result<(), SmartHouseError> {
         let device_room = match self.devices.get_mut(room) {
             Some(device_room) => device_room,
-            None => return Err(SmartHouseError::RoomNotFoundError),
+            None => return Err(SmartHouseError::RoomNotFoundError(room.to_string())),
         };
+
         if !device_room.remove(device) {
-            return Err(SmartHouseError::DeviceNotFoundError);
+            return Err(SmartHouseError::DeviceNotFoundError(
+                room.to_string(),
+                device.to_string(),
+            ));
         }
 
         Ok(())
@@ -125,11 +134,11 @@ impl SmartHouse {
 
 pub enum SmartHouseError {
     RoomsNotFoundError,
-    RoomNotFoundError,
-    RoomAlreadyExistsError,
+    RoomNotFoundError(String),
+    RoomAlreadyExistsError(String),
     DevicesNotFoundError,
-    DeviceNotFoundError,
-    DeviceAlreadyExistsError,
+    DeviceNotFoundError(String, String),
+    DeviceAlreadyExistsError(String, String),
     IoError(io::Error),
 }
 
@@ -139,11 +148,15 @@ impl fmt::Debug for SmartHouseError {
             SmartHouseError::RoomsNotFoundError => {
                 write!(f, "rooms not found")
             }
-            SmartHouseError::RoomNotFoundError => write!(f, "room not found"),
-            SmartHouseError::RoomAlreadyExistsError => write!(f, "room already exists"),
+            SmartHouseError::RoomNotFoundError(s) => write!(f, "room not found: {}", s),
+            SmartHouseError::RoomAlreadyExistsError(s) => write!(f, "room already exists: {}", s),
             SmartHouseError::DevicesNotFoundError => write!(f, "devices not found"),
-            SmartHouseError::DeviceNotFoundError => write!(f, "device not found"),
-            SmartHouseError::DeviceAlreadyExistsError => write!(f, "device already exists"),
+            SmartHouseError::DeviceNotFoundError(room, device) => {
+                write!(f, "device '{}' not found in room '{}'", device, room)
+            }
+            SmartHouseError::DeviceAlreadyExistsError(room, device) => {
+                write!(f, "device '{}' already exists in room '{}'", device, room)
+            }
             SmartHouseError::IoError(err) => {
                 write!(f, "i/o error: {}", err)
             }
@@ -157,11 +170,23 @@ impl fmt::Display for SmartHouseError {
             SmartHouseError::RoomsNotFoundError => {
                 write!(f, "комнаты не найдены")
             }
-            SmartHouseError::RoomNotFoundError => write!(f, "комната не найдена"),
-            SmartHouseError::RoomAlreadyExistsError => write!(f, "комната уже существует"),
+            SmartHouseError::RoomNotFoundError(s) => write!(f, "комната не найдена: {}", s),
+            SmartHouseError::RoomAlreadyExistsError(s) => {
+                write!(f, "комната уже существует: {}", s)
+            }
             SmartHouseError::DevicesNotFoundError => write!(f, "устройства не найдены"),
-            SmartHouseError::DeviceNotFoundError => write!(f, "устройство не найдено"),
-            SmartHouseError::DeviceAlreadyExistsError => write!(f, "устройство уже существует"),
+            SmartHouseError::DeviceNotFoundError(room, device) => write!(
+                f,
+                "устройство '{}' не найдено в комнате '{}' ",
+                device, room
+            ),
+            SmartHouseError::DeviceAlreadyExistsError(room, device) => {
+                write!(
+                    f,
+                    "устройство '{}' уже существует в комнате '{}'",
+                    device, room
+                )
+            }
             SmartHouseError::IoError(err) => {
                 write!(f, "ошибка ввода-вывода: {}", err)
             }
