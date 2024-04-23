@@ -20,18 +20,18 @@ pub(crate) fn new_house() -> SmartHouse {
         HOUSE_NAME.to_string(),
         HOUSE_ADDRESS.to_string(),
         HashMap::from([
-            (KITCHEN, vec![SOCKET_1, SOCKET_2, SWITCH_1, SWITCH_1]), // has double switch
+            (KITCHEN, &[SOCKET_1, SOCKET_2, SWITCH_1, SWITCH_1][..]), // has double switch
             (
                 LIVING_ROOM,
-                vec![THERMOMETER_1, SOCKET_1, SWITCH_2, SOCKET_1], // has double socket
+                &[THERMOMETER_1, SOCKET_1, SWITCH_2, SOCKET_1], // has double socket
             ),
             (
                 BEDROOM,
-                vec![THERMOMETER_2, SWITCH_1, SWITCH_2, THERMOMETER_2], // has double thermometer
+                &[THERMOMETER_2, SWITCH_1, SWITCH_2, THERMOMETER_2], // has double thermometer
             ),
             (
-                BEDROOM,                                                // has double room
-                vec![THERMOMETER_2, SWITCH_1, SWITCH_2, THERMOMETER_2], // has double thermometer
+                BEDROOM,                                             // has double room
+                &[THERMOMETER_2, SWITCH_1, SWITCH_2, THERMOMETER_2], // has double thermometer
             ),
         ]),
     )

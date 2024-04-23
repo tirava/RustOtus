@@ -20,9 +20,9 @@ fn main() -> Result<(), SmartHouseError> {
         "Мой умный дом".to_string(),
         "ул. Умных домов, д.1, кв.2".to_string(),
         HashMap::from([
-            (KITCHEN, vec![SOCKET_1, SOCKET_2, SWITCH_1]),
-            (LIVING_ROOM, vec![THERMOMETER_1, SOCKET_1, SWITCH_2]),
-            (BEDROOM, vec![THERMOMETER_2, SWITCH_1, SWITCH_2]),
+            (KITCHEN, &[SOCKET_1, SOCKET_2, SWITCH_1][..]),
+            (LIVING_ROOM, &[THERMOMETER_1, SOCKET_1, SWITCH_2]),
+            (BEDROOM, &[THERMOMETER_2, SWITCH_1, SWITCH_2]),
         ]),
     );
 
