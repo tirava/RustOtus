@@ -1,4 +1,4 @@
-use crate::smart_device::{SmartSocket, SmartSwitch, SmartThermometer};
+use crate::smart_device::prelude::*;
 
 pub trait DeviceInfoProvider {
     fn get_device_info(&self, room: &str, device: &str) -> Option<String>;
