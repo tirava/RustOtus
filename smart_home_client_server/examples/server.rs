@@ -1,7 +1,7 @@
 use smart_home_client_server::prelude::*;
 
 fn main() -> Result<(), SmartHouseError> {
-    let smart_socket = SmartSocket::new(
+    let mut smart_socket = SmartSocket::new(
         "Розеточка".to_string(),
         "Комнатка-1".to_string(),
         DeviceStatus::On,

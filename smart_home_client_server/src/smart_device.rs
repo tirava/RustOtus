@@ -27,7 +27,7 @@ impl fmt::Display for DeviceStatus {
 }
 
 pub trait SmartDevice {
-    fn listen(&self, addr: &str) -> Result<(), io::Error> {
+    fn listen(&mut self, addr: &str) -> Result<(), io::Error> {
         let listener = TcpListener::bind(addr)?;
 
         for stream in listener.incoming() {
@@ -46,7 +46,7 @@ pub trait SmartDevice {
         Ok(())
     }
 
-    fn exec_command(&self, _command: &str) -> Result<String, io::Error> {
+    fn exec_command(&mut self, _command: &str) -> Result<String, io::Error> {
         Ok(String::from("OK"))
     }
 }

@@ -26,18 +26,29 @@ impl fmt::Display for SmartSocket {
 }
 
 impl SmartDevice for SmartSocket {
-    fn exec_command(&self, command: &str) -> Result<String, io::Error> {
+    fn exec_command(&mut self, command: &str) -> Result<String, io::Error> {
         println!("Command: {command:#?}");
 
         let result = match command {
-            "info" => format!(
-                "name: {}, room: {}, status: {}, power: {:.2} pW",
-                self.name, self.room, self.status, self.power
-            ),
-            _ => "command no found".to_string(),
+            "on" => {
+                self.status = DeviceStatus::On;
+                self.power = 222.333;
+                "OK".to_string()
+            }
+            "off" => {
+                self.status = DeviceStatus::Off;
+                self.power = 0.0;
+                "OK".to_string()
+            }
+            "info" => {
+                format!(
+                    "name: {}, room: {}, status: {}, power: {:.2} pW",
+                    self.name, self.room, self.status, self.power
+                )
+            }
+            _ => "unknown command".to_string(),
         };
-        let result = format!("Result: {result:#?}\r\n");
 
-        Ok(result)
+        Ok(format!("Result: {result:#?}\r\n"))
     }
 }
