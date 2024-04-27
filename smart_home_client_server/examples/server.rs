@@ -15,7 +15,7 @@ fn main() -> Result<(), SmartHouseError> {
     //     22.33,
     // );
     // smart_thermometer.listen("127.0.0.1:8282")?;
-    
+
     // let smart_switch = SmartSwitch::new(
     //     "Розеточка".to_string(),
     //     "Комнатка-3".to_string(),
