@@ -1,3 +1,5 @@
+use std::io::{BufRead, BufReader, Write};
+use std::net::TcpListener;
 use std::{fmt, io};
 
 pub mod prelude {
@@ -25,7 +27,23 @@ impl fmt::Display for DeviceStatus {
 }
 
 pub trait SmartDevice {
-    fn listen(_host_port: &str) -> Result<(), io::Error> {
+    fn listen(&self, addr: &str) -> Result<(), io::Error> {
+        let listener = TcpListener::bind(addr)?;
+
+        for stream in listener.incoming() {
+            let mut stream = stream?;
+            let buf_reader = BufReader::new(&mut stream);
+            let command = buf_reader.lines().next().unwrap().unwrap();
+
+            let result = Self::exec_command(&command)?;
+            println!("{}", result);
+            stream.write_all(result.as_bytes())?
+        }
+
         Ok(())
+    }
+
+    fn exec_command(_command: &str) -> Result<String, io::Error> {
+        Ok(String::from("OK"))
     }
 }

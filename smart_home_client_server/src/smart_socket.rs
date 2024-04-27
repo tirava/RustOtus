@@ -1,5 +1,5 @@
 use crate::smart_device::{DeviceStatus, SmartDevice};
-use std::fmt;
+use std::{fmt, io};
 
 pub struct SmartSocket {
     pub(crate) name: String,
@@ -25,4 +25,11 @@ impl fmt::Display for SmartSocket {
     }
 }
 
-impl SmartDevice for SmartSocket {}
+impl SmartDevice for SmartSocket {
+    fn exec_command(command: &str) -> Result<String, io::Error> {
+        println!("Command: {command:#?}");
+        let result = format!("Result: {:#?}\r\n", "SmartSocket command executed");
+
+        Ok(result)
+    }
+}
