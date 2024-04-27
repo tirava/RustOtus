@@ -1,4 +1,5 @@
 use crate::smart_device::{DeviceStatus, SmartDevice};
+use chrono::{DateTime, Local};
 use std::{fmt, io};
 
 pub struct SmartSocket {
@@ -27,7 +28,11 @@ impl fmt::Display for SmartSocket {
 
 impl SmartDevice for SmartSocket {
     fn exec_command(&mut self, command: &str) -> Result<String, io::Error> {
-        print!("Command '{command}' -> ");
+        let curr_time: DateTime<Local> = Local::now();
+        print!(
+            "{}: Command '{command}' -> ",
+            curr_time.format("%Y-%m-%d %H:%M:%S:%.3f")
+        );
 
         let result = match command {
             "on" => {
