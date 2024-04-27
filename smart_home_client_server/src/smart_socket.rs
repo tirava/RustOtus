@@ -33,12 +33,12 @@ impl SmartDevice for SmartSocket {
             "on" => {
                 self.status = DeviceStatus::On;
                 self.power = 222.333;
-                "OK".to_string()
+                "device is now ON".to_string()
             }
             "off" => {
                 self.status = DeviceStatus::Off;
                 self.power = 0.0;
-                "OK".to_string()
+                "device is now OFF".to_string()
             }
             "info" => {
                 format!(
