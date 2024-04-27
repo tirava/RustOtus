@@ -1,7 +1,8 @@
-use std::fmt;
+use std::{fmt, io};
 
 pub mod prelude {
     pub use crate::smart_device::DeviceStatus;
+    pub use crate::smart_device::SmartDevice;
     pub use crate::smart_socket::SmartSocket;
     pub use crate::smart_switch::SmartSwitch;
     pub use crate::smart_thermometer::SmartThermometer;
@@ -20,5 +21,11 @@ impl fmt::Display for DeviceStatus {
             DeviceStatus::On => write!(f, "включено"),
             DeviceStatus::Unknown => write!(f, "неизвестно"),
         }
+    }
+}
+
+pub trait SmartDevice {
+    fn listen(_host_port: &str) -> Result<(), io::Error> {
+        Ok(())
     }
 }

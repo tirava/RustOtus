@@ -1,4 +1,4 @@
-use crate::smart_device::DeviceStatus;
+use crate::smart_device::{DeviceStatus, SmartDevice};
 use std::fmt;
 
 pub struct SmartSocket {
@@ -24,3 +24,5 @@ impl fmt::Display for SmartSocket {
         write!(f, "статус - {}, мощность {:.2} pW", self.status, self.power)
     }
 }
+
+impl SmartDevice for SmartSocket {}

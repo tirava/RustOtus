@@ -1,4 +1,4 @@
-use crate::smart_device::DeviceStatus;
+use crate::smart_device::{DeviceStatus, SmartDevice};
 use std::fmt;
 
 pub struct SmartSwitch {
@@ -18,3 +18,5 @@ impl fmt::Display for SmartSwitch {
         write!(f, "статус - {}", self.status)
     }
 }
+
+impl SmartDevice for SmartSwitch {}

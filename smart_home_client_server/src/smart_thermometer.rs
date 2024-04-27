@@ -1,4 +1,5 @@
 use std::{fmt, io};
+use crate::smart_device::SmartDevice;
 
 pub struct SmartThermometer {
     pub(crate) name: String,
@@ -25,3 +26,5 @@ impl fmt::Display for SmartThermometer {
         write!(f, "температура - {:.2} °С", self.temp)
     }
 }
+
+impl SmartDevice for SmartThermometer {}

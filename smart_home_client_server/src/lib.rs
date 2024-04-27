@@ -1,5 +1,5 @@
 mod device_info_provider;
-mod smart_device;
+pub mod smart_device;
 mod smart_house;
 mod smart_socket;
 mod smart_switch;
