@@ -27,7 +27,7 @@ impl fmt::Display for SmartSocket {
 
 impl SmartDevice for SmartSocket {
     fn exec_command(&mut self, command: &str) -> Result<String, io::Error> {
-        println!("Command: {command:#?}");
+        print!("Command '{command}' -> ");
 
         let result = match command {
             "on" => {
@@ -49,6 +49,6 @@ impl SmartDevice for SmartSocket {
             _ => "unknown command".to_string(),
         };
 
-        Ok(format!("Result: {result:#?}\r\n"))
+        Ok(result)
     }
 }

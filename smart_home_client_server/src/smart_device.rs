@@ -1,5 +1,5 @@
-use std::io::{BufRead, BufReader, Write};
-use std::net::TcpListener;
+use std::io::{BufRead, BufReader, Read, Write};
+use std::net::{TcpListener, TcpStream};
 use std::{fmt, io};
 
 pub mod prelude {
@@ -29,6 +29,7 @@ impl fmt::Display for DeviceStatus {
 pub trait SmartDevice {
     fn listen(&mut self, addr: &str) -> Result<(), io::Error> {
         let listener = TcpListener::bind(addr)?;
+        println!("SmartDevice listening on {}...\n", addr);
 
         for stream in listener.incoming() {
             let mut stream = stream?;
@@ -39,11 +40,29 @@ pub trait SmartDevice {
                 .expect("не удалось получить команду")?;
 
             let result = self.exec_command(&command)?;
-            println!("{}", result);
+            println!("'{}'", result);
             stream.write_all(result.as_bytes())?
         }
 
         Ok(())
+    }
+
+    fn send_command(addr: &str, command: &str) -> Result<String, io::Error> {
+        println!("Connect to '{}' with command '{}'...", addr, command);
+
+        match TcpStream::connect(addr) {
+            Ok(mut stream) => {
+                let command = format!("{}\n", command);
+                stream.write_all(command.as_bytes())?;
+
+                let mut data = String::new();
+                match stream.read_to_string(&mut data) {
+                    Ok(_) => Ok(data),
+                    Err(err) => Err(err),
+                }
+            }
+            Err(err) => Err(err),
+        }
     }
 
     fn exec_command(&mut self, _command: &str) -> Result<String, io::Error> {
