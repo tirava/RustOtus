@@ -1,5 +1,6 @@
 use smart_home_client_server::prelude::*;
 use std::collections::HashMap;
+use std::thread;
 
 pub const HOUSE_NAME: &str = "Мой умный дом";
 pub const HOUSE_ADDRESS: &str = "ул. Умных домов, д.1, кв.2";
@@ -14,6 +15,7 @@ pub const SOCKET_2: &str = "Розетка-2";
 pub const SOCKET_3: &str = "Розетка-3";
 pub const SWITCH_1: &str = "Выключатель-1";
 pub const SWITCH_2: &str = "Выключатель-2";
+pub const SOCKET_ADDR: &str = "127.0.0.1:54321";
 
 pub(crate) fn new_house() -> SmartHouse {
     SmartHouse::new(
@@ -92,4 +94,18 @@ pub(crate) fn init_devices(
     }
 
     (sockets, thermometers, switches)
+}
+
+pub fn run_socket_server(addr: &str) {
+    let addr = addr.to_string();
+
+    thread::spawn(move || {
+        let mut smart_socket = SmartSocket::new(
+            SOCKET_1.to_string(),
+            LIVING_ROOM.to_string(),
+            DeviceStatus::On,
+            111.222,
+        );
+        assert!(smart_socket.listen(&addr).is_err());
+    });
 }

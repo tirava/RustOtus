@@ -154,3 +154,43 @@ fn test_house_report() {
                      : Выключатель-2, состояние: статус - выключено\n              \
                      : Термометр-2, состояние: температура - 22.33 °С\n\n");
 }
+
+// тест клиент-сервер для розетки
+#[test]
+fn test_socket_client_server() {
+    run_socket_server(SOCKET_ADDR);
+
+    let result = SmartSocket::send_command(SOCKET_ADDR, "info");
+    assert!(result.is_ok());
+    assert_eq!(
+        result.unwrap(),
+        format!(
+            "name: {SOCKET_1}, room: {LIVING_ROOM}, status: {}, power: 111.22 pW",
+            &DeviceStatus::On.to_string(),
+        )
+    );
+
+    let result = SmartSocket::send_command(SOCKET_ADDR, "on");
+    assert!(result.is_ok());
+    assert_eq!(result.unwrap(), "device is now ON");
+
+    let result = SmartSocket::send_command(SOCKET_ADDR, "power");
+    assert!(result.is_ok());
+    let power = result.unwrap().parse::<f64>();
+    assert!(power.is_ok());
+    assert!(power.unwrap() > 0.0);
+
+    let result = SmartSocket::send_command(SOCKET_ADDR, "off");
+    assert!(result.is_ok());
+    assert_eq!(result.unwrap(), "device is now OFF");
+
+    let result = SmartSocket::send_command(SOCKET_ADDR, "power");
+    assert!(result.is_ok());
+    let power = result.unwrap().parse::<f64>();
+    assert!(power.is_ok());
+    assert_eq!(power.unwrap(), 0.0);
+
+    let result = SmartSocket::send_command(SOCKET_ADDR, "qqq");
+    assert!(result.is_ok());
+    assert_eq!(result.unwrap(), "unknown command");
+}
