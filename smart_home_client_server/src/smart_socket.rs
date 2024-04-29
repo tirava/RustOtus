@@ -1,5 +1,6 @@
 use crate::smart_device::{DeviceStatus, SmartDevice};
 use chrono::{DateTime, Local};
+use rand::Rng;
 use std::{fmt, io};
 
 pub struct SmartSocket {
@@ -37,7 +38,7 @@ impl SmartDevice for SmartSocket {
         let result = match command {
             "on" => {
                 self.status = DeviceStatus::On;
-                self.power = 222.333;
+                self.power = rand::thread_rng().gen_range(10.0..3000.0);
                 "device is now ON".to_string()
             }
             "off" => {
@@ -45,6 +46,7 @@ impl SmartDevice for SmartSocket {
                 self.power = 0.0;
                 "device is now OFF".to_string()
             }
+            "power" => format!("{:.2}", self.power),
             "info" => {
                 format!(
                     "name: {}, room: {}, status: {}, power: {:.2} pW",
