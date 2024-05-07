@@ -29,28 +29,28 @@ impl fmt::Display for DeviceStatus {
 pub trait SmartDevice {
     fn listen(&mut self, addr: &str) -> Result<(), io::Error> {
         let listener = TcpListener::bind(addr)?;
-        println!("SmartDevice listening on {}...", addr);
+        println!("SMART_DEVICE: listening on {}...", addr);
 
         for stream in listener.incoming() {
             if stream.is_err() {
-                eprintln!("stream error: {}", stream.unwrap_err());
+                eprintln!("SMART_DEVICE: stream error: {}", stream.unwrap_err());
                 continue;
             }
 
             let mut stream = stream.unwrap();
-            println!("\nConnected client: {:?}", stream.peer_addr());
+            println!("SMART_DEVICE: connected client: {:?}", stream.peer_addr());
             let buf_reader = BufReader::new(&mut stream);
             let command = buf_reader
                 .lines()
                 .next()
-                .expect("не удалось получить команду")?;
+                .expect("SMART_DEVICE: не удалось получить команду")?;
 
             let result = self.exec_command(&command);
             println!("'{}'", result);
 
             let write_result = stream.write_all(result.as_bytes());
             if write_result.is_err() {
-                eprintln!("write error: {}", write_result.unwrap_err());
+                eprintln!("SMART_DEVICE: write error: {}", write_result.unwrap_err());
             }
         }
 
@@ -58,7 +58,7 @@ pub trait SmartDevice {
     }
 
     fn send_command(addr: &str, command: &str) -> Result<String, io::Error> {
-        println!("Connect to '{}' with command '{}'...", addr, command);
+        println!("SMART_DEVICE: connecting to address '{}' with command '{}'...", addr, command);
 
         match TcpStream::connect(addr) {
             Ok(mut stream) => {
