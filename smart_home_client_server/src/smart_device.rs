@@ -29,10 +29,16 @@ impl fmt::Display for DeviceStatus {
 pub trait SmartDevice {
     fn listen(&mut self, addr: &str) -> Result<(), io::Error> {
         let listener = TcpListener::bind(addr)?;
-        println!("SmartDevice listening on {}...\n", addr);
+        println!("SmartDevice listening on {}...", addr);
 
         for stream in listener.incoming() {
-            let mut stream = stream?;
+            if stream.is_err() {
+                eprintln!("stream error: {}", stream.unwrap_err());
+                continue;
+            }
+
+            let mut stream = stream.unwrap();
+            println!("\nConnected client: {:?}", stream.peer_addr());
             let buf_reader = BufReader::new(&mut stream);
             let command = buf_reader
                 .lines()
@@ -41,7 +47,11 @@ pub trait SmartDevice {
 
             let result = self.exec_command(&command);
             println!("'{}'", result);
-            stream.write_all(result.as_bytes())?
+
+            let write_result = stream.write_all(result.as_bytes());
+            if write_result.is_err() {
+                eprintln!("write error: {}", write_result.unwrap_err());
+            }
         }
 
         Ok(())
