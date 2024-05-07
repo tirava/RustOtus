@@ -40,10 +40,20 @@ pub trait SmartDevice {
             let mut stream = stream.unwrap();
             println!("SMART_DEVICE: connected client: {:?}", stream.peer_addr());
             let buf_reader = BufReader::new(&mut stream);
-            let command = buf_reader
-                .lines()
-                .next()
-                .expect("SMART_DEVICE: не удалось получить команду")?;
+
+            let command = match buf_reader.lines().next() {
+                Some(command) => match command {
+                    Ok(command) => command,
+                    Err(err) => {
+                        eprintln!("SMART_DEVICE: read command error: {err}");
+                        continue;
+                    }
+                },
+                None => {
+                    eprintln!("SMART_DEVICE: no command received");
+                    continue;
+                }
+            };
 
             let result = self.exec_command(&command);
             println!("'{}'", result);
@@ -58,7 +68,10 @@ pub trait SmartDevice {
     }
 
     fn send_command(addr: &str, command: &str) -> Result<String, io::Error> {
-        println!("SMART_DEVICE: connecting to address '{}' with command '{}'...", addr, command);
+        println!(
+            "SMART_DEVICE: connecting to address '{}' with command '{}'...",
+            addr, command
+        );
 
         match TcpStream::connect(addr) {
             Ok(mut stream) => {
