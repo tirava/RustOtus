@@ -39,7 +39,7 @@ pub trait SmartDevice {
                 .next()
                 .expect("не удалось получить команду")?;
 
-            let result = self.exec_command(&command)?;
+            let result = self.exec_command(&command);
             println!("'{}'", result);
             stream.write_all(result.as_bytes())?
         }
@@ -65,7 +65,7 @@ pub trait SmartDevice {
         }
     }
 
-    fn exec_command(&mut self, _command: &str) -> Result<String, io::Error> {
-        Ok(String::from("OK"))
+    fn exec_command(&mut self, _command: &str) -> String {
+        String::from("OK")
     }
 }

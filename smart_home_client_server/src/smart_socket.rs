@@ -1,7 +1,7 @@
 use crate::smart_device::{DeviceStatus, SmartDevice};
 use chrono::{DateTime, Local};
 use rand::Rng;
-use std::{fmt, io};
+use std::fmt;
 
 pub struct SmartSocket {
     pub(crate) name: String,
@@ -28,14 +28,14 @@ impl fmt::Display for SmartSocket {
 }
 
 impl SmartDevice for SmartSocket {
-    fn exec_command(&mut self, command: &str) -> Result<String, io::Error> {
+    fn exec_command(&mut self, command: &str) -> String {
         let curr_time: DateTime<Local> = Local::now();
         print!(
             "{}: Command '{command}' -> ",
             curr_time.format("%Y-%m-%d %H:%M:%S:%.3f")
         );
 
-        let result = match command {
+        match command {
             "on" => {
                 self.status = DeviceStatus::On;
                 self.power = rand::thread_rng().gen_range(10.0..3000.0);
@@ -54,8 +54,6 @@ impl SmartDevice for SmartSocket {
                 )
             }
             _ => "unknown command".to_string(),
-        };
-
-        Ok(result)
+        }
     }
 }
