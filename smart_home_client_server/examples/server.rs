@@ -1,5 +1,7 @@
 use smart_home_client_server::prelude::*;
 
+const SOCKET_ADDR: &str = "127.0.0.1:54321";
+
 fn main() -> Result<(), SmartHouseError> {
     let mut smart_socket = SmartSocket::new(
         "Розеточка".to_string(),
@@ -7,7 +9,7 @@ fn main() -> Result<(), SmartHouseError> {
         DeviceStatus::On,
         111.222,
     );
-    smart_socket.listen("127.0.0.1:8181")?;
+    smart_socket.listen(SOCKET_ADDR)?;
 
     // let smart_thermometer = SmartThermometer::new(
     //     "Термометрик".to_string(),

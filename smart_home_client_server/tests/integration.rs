@@ -1,3 +1,5 @@
+use std::{thread::sleep, time};
+
 use crate::common::*;
 use smart_home_client_server::prelude::*;
 
@@ -159,6 +161,8 @@ fn test_house_report() {
 #[test]
 fn test_socket_client_server() {
     run_socket_server(SOCKET_ADDR);
+
+    sleep(time::Duration::from_secs(1));
 
     let result = SmartSocket::send_command(SOCKET_ADDR, "info");
     assert!(result.is_ok());
