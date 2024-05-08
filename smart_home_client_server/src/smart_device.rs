@@ -38,39 +38,41 @@ pub trait SmartDevice {
                 continue;
             }
 
-            let mut stream = stream.unwrap();
-            println!("SMART_DEVICE: connected client: {:?}", stream.peer_addr());
-            let buf_reader = BufReader::new(&mut stream);
+            let stream = stream.unwrap();
+            let peer_addr = stream.peer_addr()?;
+            println!("SMART_DEVICE: connected client: {peer_addr}");
 
-            let command = match buf_reader.lines().next() {
-                Some(command) => match command {
-                    Ok(command) => command,
-                    Err(err) => {
-                        eprintln!("SMART_DEVICE: read command error: {err}");
-                        continue;
-                    }
-                },
-                None => {
-                    eprintln!("SMART_DEVICE: no command received");
-                    continue;
-                }
-            };
-
-            let result = self.exec_command(&command);
-            println!("'{}'", result);
-
-            let write_result = stream.write_all(result.as_bytes());
-            if write_result.is_err() {
-                eprintln!("SMART_DEVICE: write error: {}", write_result.unwrap_err());
-            }
-
-            println!(
-                "SMART_DEVICE: disconnected client: {:?}",
-                stream.peer_addr()
-            );
+            self.handle_connection(stream);
+            println!("SMART_DEVICE: disconnected client: {peer_addr}");
         }
 
         Ok(())
+    }
+
+    fn handle_connection(&mut self, mut stream: TcpStream) {
+        let buf_reader = BufReader::new(&mut stream);
+
+        let command = match buf_reader.lines().next() {
+            Some(command) => match command {
+                Ok(command) => command,
+                Err(err) => {
+                    eprintln!("SMART_DEVICE: read command error: {err}");
+                    return;
+                }
+            },
+            None => {
+                eprintln!("SMART_DEVICE: no command received");
+                return;
+            }
+        };
+
+        let result = self.exec_command(&command);
+        println!("'{}'", result);
+
+        let write_result = stream.write_all(result.as_bytes());
+        if write_result.is_err() {
+            eprintln!("SMART_DEVICE: write error: {}", write_result.unwrap_err());
+        }
     }
 
     fn send_command(addr: &str, command: &str) -> Result<String, SmartHouseError> {
