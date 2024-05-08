@@ -1,6 +1,7 @@
+use crate::smart_house::SmartHouseError;
+use std::fmt;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
-use std::{fmt, io};
 
 pub mod prelude {
     pub use crate::smart_device::DeviceStatus;
@@ -27,7 +28,7 @@ impl fmt::Display for DeviceStatus {
 }
 
 pub trait SmartDevice {
-    fn listen(&mut self, addr: &str) -> Result<(), io::Error> {
+    fn listen(&mut self, addr: &str) -> Result<(), SmartHouseError> {
         let listener = TcpListener::bind(addr)?;
         println!("SMART_DEVICE: listening on {}...", addr);
 
@@ -62,12 +63,17 @@ pub trait SmartDevice {
             if write_result.is_err() {
                 eprintln!("SMART_DEVICE: write error: {}", write_result.unwrap_err());
             }
+
+            println!(
+                "SMART_DEVICE: disconnected client: {:?}",
+                stream.peer_addr()
+            );
         }
 
         Ok(())
     }
 
-    fn send_command(addr: &str, command: &str) -> Result<String, io::Error> {
+    fn send_command(addr: &str, command: &str) -> Result<String, SmartHouseError> {
         println!(
             "SMART_DEVICE: connecting to address '{}' with command '{}'...",
             addr, command
@@ -81,10 +87,10 @@ pub trait SmartDevice {
                 let mut data = String::new();
                 match stream.read_to_string(&mut data) {
                     Ok(_) => Ok(data),
-                    Err(err) => Err(err),
+                    Err(err) => Err(SmartHouseError::from(err)),
                 }
             }
-            Err(err) => Err(err),
+            Err(err) => Err(SmartHouseError::from(err)),
         }
     }
 
