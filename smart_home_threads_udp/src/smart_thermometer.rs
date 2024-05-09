@@ -1,5 +1,7 @@
-use std::fmt;
+use crate::prelude::SmartHouseError;
 use crate::smart_device::SmartDevice;
+use std::fmt;
+use std::net::UdpSocket;
 
 pub struct SmartThermometer {
     pub(crate) name: String,
@@ -19,4 +21,68 @@ impl fmt::Display for SmartThermometer {
     }
 }
 
-impl SmartDevice for SmartThermometer {}
+impl SmartDevice for SmartThermometer {
+    fn listen(&mut self, addr: &str) -> Result<(), SmartHouseError> {
+        let socket = UdpSocket::bind(addr)?;
+        println!("SMART_THERMOMETER: UDP listening on {}...", addr);
+
+        let mut buf = [0; 8];
+        loop {
+            match socket.recv_from(&mut buf) {
+                Ok((len, src)) => {
+                    println!("SMART_THERMOMETER: received a datagram from client: {src}");
+
+                    let buf = &buf[0..len];
+                    let command = String::from_utf8_lossy(buf).to_string();
+                    let result = self.exec_command(&command);
+                    println!("'{}'", result);
+                    
+                    match socket.send_to(result.as_bytes(), src) {
+                        Ok(_) => (),
+                        Err(err) => {
+                            eprintln!("SMART_THERMOMETER: couldn't send a datagram: {}", err)
+                        }
+                    }
+
+                    println!("SMART_DEVICE: sent a datagram to client: {src}");
+                }
+                Err(err) => {
+                    eprintln!("SMART_THERMOMETER: couldn't receive a datagram: {}", err);
+                }
+            }
+        }
+    }
+
+    fn send_command(addr: &str, command: &str) -> Result<String, SmartHouseError> {
+        println!(
+            "SMART_THERMOMETER: connecting to address '{}' with command '{}'...",
+            addr, command
+        );
+        let socket = UdpSocket::bind("127.0.0.1:0")?;
+
+        match socket.send_to(command.as_bytes(), addr) {
+            Ok(_) => (),
+            Err(err) => return Err(SmartHouseError::from(err)),
+        }
+
+        let mut buf = [0; 128];
+        match socket.recv_from(&mut buf) {
+            Ok((_, _)) => Ok(String::from_utf8_lossy(&buf).to_string()),
+            Err(err) => Err(SmartHouseError::from(err)),
+        }
+    }
+
+    fn exec_command(&mut self, command: &str) -> String {
+        print!("SMART_THERMOMETER: command '{command}' -> ");
+
+        match command {
+            "info" => {
+                format!(
+                    "name: {}, room: {}, temperature: {:.2} °С",
+                    self.name, self.room, self.temp
+                )
+            }
+            _ => "unknown command".to_string(),
+        }
+    }
+}

@@ -30,7 +30,7 @@ impl fmt::Display for DeviceStatus {
 pub trait SmartDevice {
     fn listen(&mut self, addr: &str) -> Result<(), SmartHouseError> {
         let listener = TcpListener::bind(addr)?;
-        println!("SMART_DEVICE: listening on {}...", addr);
+        println!("SMART_DEVICE: TCP listening on {}...", addr);
 
         for stream in listener.incoming() {
             if stream.is_err() {
