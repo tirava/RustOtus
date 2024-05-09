@@ -5,7 +5,8 @@ members = [
     "smart_home_2s",
     "smart_home_lib_tests",
     "smart_home_options",
-	"smart_home_crud",
+    "smart_home_crud",
+    "smart_home_client_server",
 ]
 
 resolver = "2"
