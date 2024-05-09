@@ -26,7 +26,7 @@ impl SmartDevice for SmartThermometer {
         let socket = UdpSocket::bind(addr)?;
         println!("SMART_THERMOMETER: UDP listening on {}...", addr);
 
-        let mut buf = [0; 8];
+        let mut buf = [0; 128];
         loop {
             match socket.recv_from(&mut buf) {
                 Ok((len, src)) => {
@@ -36,7 +36,7 @@ impl SmartDevice for SmartThermometer {
                     let command = String::from_utf8_lossy(buf).to_string();
                     let result = self.exec_command(&command);
                     println!("'{}'", result);
-                    
+
                     match socket.send_to(result.as_bytes(), src) {
                         Ok(_) => (),
                         Err(err) => {
@@ -58,7 +58,7 @@ impl SmartDevice for SmartThermometer {
             "SMART_THERMOMETER: connecting to address '{}' with command '{}'...",
             addr, command
         );
-        let socket = UdpSocket::bind("127.0.0.1:0")?;
+        let socket = UdpSocket::bind("0.0.0.0:0")?;
 
         match socket.send_to(command.as_bytes(), addr) {
             Ok(_) => (),
@@ -82,7 +82,13 @@ impl SmartDevice for SmartThermometer {
                     self.name, self.room, self.temp
                 )
             }
-            _ => "unknown command".to_string(),
+            _ => match command.parse::<f32>() {
+                Ok(value) => {
+                    self.temp = value;
+                    format!("temperature is {:.2} °С", self.temp)
+                }
+                Err(_) => "unknown command".to_string(),
+            },
         }
     }
 }

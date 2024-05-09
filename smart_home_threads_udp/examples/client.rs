@@ -1,3 +1,4 @@
+use rand::Rng;
 use smart_home_threads_udp::prelude::*;
 use std::thread::sleep;
 use std::time;
@@ -22,11 +23,18 @@ fn main() -> Result<(), SmartHouseError> {
     let result = SmartSocket::send_command(SOCKET_ADDR, "qqq")?;
     println!("CLIENT: SmartSocket command 'qqq' - '{}'\n", result);
 
+    let result = SmartThermometer::send_command(THERMOMETER_ADDR, "info")?;
+    println!("CLIENT: SmartThermometer command 'info' - '{}'\n", result);
+
     for _ in 0..10 {
         sleep(time::Duration::from_secs(1));
-        let result = SmartThermometer::send_command(THERMOMETER_ADDR, "info")?;
-        println!("CLIENT: SmartSocket command 'info' - '{}'\n", result);
+        let temp = rand::thread_rng().gen_range(20.0..25.0);
+        let result = SmartThermometer::send_command(THERMOMETER_ADDR, temp.to_string().as_str())?;
+        println!("CLIENT: SmartThermometer sent 'temp' - '{}'\n", result);
     }
+
+    let result = SmartThermometer::send_command(THERMOMETER_ADDR, "info")?;
+    println!("CLIENT: SmartThermometer command 'info' - '{}'\n", result);
 
     // let result = SmartThermometer::send_command("127.0.0.1:8282", "info")?;
     // println!("SmartThermometer command 'info': {:?}", result);
