@@ -32,8 +32,7 @@ impl SmartDevice for SmartThermometer {
                 Ok((len, src)) => {
                     println!("SMART_THERMOMETER: received a datagram from client: {src}");
 
-                    let buf = &buf[0..len];
-                    let command = String::from_utf8_lossy(buf).to_string();
+                    let command = String::from_utf8_lossy(&buf[0..len]).to_string();
                     let result = self.exec_command(&command);
                     println!("'{}'", result);
 
@@ -67,7 +66,7 @@ impl SmartDevice for SmartThermometer {
 
         let mut buf = [0; 128];
         match socket.recv_from(&mut buf) {
-            Ok((_, _)) => Ok(String::from_utf8_lossy(&buf).to_string()),
+            Ok((len, _)) => Ok(String::from_utf8_lossy(&buf[0..len]).to_string()),
             Err(err) => Err(SmartHouseError::from(err)),
         }
     }
@@ -85,7 +84,7 @@ impl SmartDevice for SmartThermometer {
             _ => match command.parse::<f32>() {
                 Ok(value) => {
                     self.temp = value;
-                    format!("temperature is {:.2} °С", self.temp)
+                    format!("{:.2}", self.temp)
                 }
                 Err(_) => "unknown command".to_string(),
             },
