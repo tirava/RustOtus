@@ -32,19 +32,20 @@ impl SmartDevice for SmartThermometer {
                 Ok((len, src)) => {
                     println!("SMART_THERMOMETER: received a datagram from client: {src}");
 
-                    let command = String::from_utf8_lossy(&buf[0..len]).to_string();
+                    let command = String::from_utf8_lossy(&buf[0..len]);
                     let result = self.exec_command(&command);
                     println!("'{}'", result);
 
                     match socket.send_to(result.as_bytes(), src) {
                         Ok(_) => (),
                         Err(err) => {
-                            eprintln!("SMART_THERMOMETER: couldn't send a datagram: {}", err)
+                            eprintln!("SMART_THERMOMETER: couldn't send a datagram: {}", err);
+                            continue;
                         }
                     }
-
                     println!("SMART_DEVICE: sent a datagram to client: {src}");
                 }
+
                 Err(err) => {
                     eprintln!("SMART_THERMOMETER: couldn't receive a datagram: {}", err);
                 }
