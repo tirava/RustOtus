@@ -15,7 +15,7 @@ fn main() -> Result<(), SmartHouseError> {
 
     thread::spawn(|| {
         for _ in 0..100 {
-            thread::sleep(std::time::Duration::from_secs_f32(0.5));
+            thread::sleep(std::time::Duration::from_secs_f32(1.5));
             let temp = rand::thread_rng().gen_range(20.0..25.0);
             match SmartThermometer::send_command(THERMOMETER_ADDR, temp.to_string().as_str()) {
                 Ok(result) => {
