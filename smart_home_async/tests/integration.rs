@@ -243,31 +243,27 @@ async fn test_socket_client_server_async() {
     assert_eq!(result.unwrap(), "unknown command");
 }
 
-// // тест клиент-сервер для термометра
-// #[test]
-// fn test_thermometer_client_server() {
-//     run_thermometer_server(THERMOMETER_ADDR);
-//     sleep(time::Duration::from_secs_f32(0.5));
-//
-//     let result = SmartThermometer::send_command(THERMOMETER_ADDR, "info");
-//     assert!(result.is_ok());
-//     assert_eq!(
-//         result.unwrap(),
-//         format!("name: {THERMOMETER_1}, room: {BEDROOM}, temperature: 22.33 °С")
-//     );
-//
-//     let result = SmartThermometer::send_command(THERMOMETER_ADDR, "33.22");
-//     assert!(result.is_ok());
-//     assert_eq!(result.unwrap(), "33.22");
-//
-//     let result = SmartThermometer::send_command(THERMOMETER_ADDR, "info");
-//     assert!(result.is_ok());
-//     assert_eq!(
-//         result.unwrap(),
-//         format!("name: {THERMOMETER_1}, room: {BEDROOM}, temperature: 33.22 °С")
-//     );
-//
-//     let result = SmartThermometer::send_command(THERMOMETER_ADDR, "qqq");
-//     assert!(result.is_ok());
-//     assert_eq!(result.unwrap(), "unknown command");
-// }
+// тест клиент-сервер для термометра
+#[tokio::test]
+async fn test_thermometer_client_server_async() {
+    run_thermometer_server(THERMOMETER_ADDR);
+    time::sleep(time::Duration::from_secs_f32(0.5)).await;
+
+    let result = SmartThermometer::send_command(THERMOMETER_ADDR, "info").await;
+    assert_eq!(
+        result.unwrap(),
+        format!("name: {THERMOMETER_1}, room: {BEDROOM}, temperature: 22.33 °С")
+    );
+
+    let result = SmartThermometer::send_command(THERMOMETER_ADDR, "33.22").await;
+    assert_eq!(result.unwrap(), "33.22");
+
+    let result = SmartThermometer::send_command(THERMOMETER_ADDR, "info").await;
+    assert_eq!(
+        result.unwrap(),
+        format!("name: {THERMOMETER_1}, room: {BEDROOM}, temperature: 33.22 °С")
+    );
+
+    let result = SmartThermometer::send_command(THERMOMETER_ADDR, "qqq").await;
+    assert_eq!(result.unwrap(), "unknown command");
+}
