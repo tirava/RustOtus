@@ -1,5 +1,6 @@
 use crate::prelude::SmartHouseError;
 use crate::smart_device::SmartDevice;
+use async_trait::async_trait;
 use std::fmt;
 use std::net::UdpSocket;
 
@@ -21,8 +22,9 @@ impl fmt::Display for SmartThermometer {
     }
 }
 
+#[async_trait]
 impl SmartDevice for SmartThermometer {
-    async fn listen(&mut self, addr: &str) -> Result<(), SmartHouseError> {
+    async fn listen(&'static self, addr: &str) -> Result<(), SmartHouseError> {
         let socket = UdpSocket::bind(addr)?;
         println!("SMART_THERMOMETER: UDP listening on {}...", addr);
 
@@ -59,12 +61,12 @@ impl SmartDevice for SmartThermometer {
     //         addr, command
     //     );
     //     let socket = UdpSocket::bind("0.0.0.0:0")?;
-    // 
+    //
     //     match socket.send_to(command.as_bytes(), addr) {
     //         Ok(_) => (),
     //         Err(err) => return Err(SmartHouseError::from(err)),
     //     }
-    // 
+    //
     //     let mut buf = [0; 128];
     //     match socket.recv_from(&mut buf) {
     //         Ok((len, _)) => Ok(String::from_utf8_lossy(&buf[0..len]).to_string()),
@@ -72,7 +74,7 @@ impl SmartDevice for SmartThermometer {
     //     }
     // }
 
-    fn exec_command(&mut self, command: &str) -> String {
+    fn exec_command(&self, command: &str) -> String {
         print!("SMART_THERMOMETER: command '{command}' -> ");
 
         match command {
@@ -83,8 +85,8 @@ impl SmartDevice for SmartThermometer {
                 )
             }
             _ => match command.parse::<f32>() {
-                Ok(value) => {
-                    self.temp = value;
+                Ok(_) => {
+                    // self.temp = value;
                     format!("{:.2}", self.temp)
                 }
                 Err(_) => "unknown command".to_string(),

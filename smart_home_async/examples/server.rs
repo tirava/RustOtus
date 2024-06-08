@@ -28,13 +28,14 @@ async fn main() -> Result<(), SmartHouseError> {
     //     }
     // });
 
-    let mut smart_socket = SmartSocket::new(
+    SmartSocket::new(
         "Розеточка".to_string(),
         "Комнатка-1".to_string(),
         DeviceStatus::On,
         111.222,
-    );
-    smart_socket.listen(SOCKET_ADDR).await?;
+    )
+    .listen(SOCKET_ADDR)
+    .await?;
 
     Ok(())
 }
