@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 rand = "0.8.5"
-tokio = { version = "1.38.0", features = ["net", "macros", "rt-multi-thread", "io-util"] }
+tokio = { version = "1.38.0", features = ["net", "macros", "rt-multi-thread", "io-util", "time"] }
 async-trait = "0.1.80"
 atomic_float = "1.0.0"
 atomic_enum = "0.3.0"

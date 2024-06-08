@@ -41,17 +41,12 @@ impl SmartDevice for SmartSocket {
             "on" => {
                 self.status.store(DeviceStatus::On, SeqCst);
                 self.power
-                    .fetch_update(SeqCst, SeqCst, |_| {
-                        Some(rand::thread_rng().gen_range(10.0..3000.0))
-                    })
-                    .unwrap_or(0.0);
+                    .store(rand::thread_rng().gen_range(10.0..3000.0), SeqCst);
                 "device is now ON".to_string()
             }
             "off" => {
                 self.status.store(DeviceStatus::Off, SeqCst);
-                self.power
-                    .fetch_update(SeqCst, SeqCst, |_| Some(0.0))
-                    .unwrap_or(0.0);
+                self.power.store(0.0, SeqCst);
                 "device is now OFF".to_string()
             }
             "power" => format!("{:.2}", self.power.load(SeqCst)),

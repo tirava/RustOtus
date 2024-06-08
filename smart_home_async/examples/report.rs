@@ -59,27 +59,23 @@ fn main() -> Result<(), SmartHouseError> {
                         socket.status.store(DeviceStatus::On, SeqCst);
                         socket
                             .power
-                            .fetch_update(SeqCst, SeqCst, |_| {
-                                Some(rand::thread_rng().gen_range(10.0..3000.0))
-                            })
-                            .unwrap_or(0.0);
+                            .store(rand::thread_rng().gen_range(10.0..3000.0), SeqCst);
                     } else if device == SOCKET_2 {
                         socket.status.store(DeviceStatus::Off, SeqCst);
                     } else {
                         socket.status.store(DeviceStatus::On, SeqCst);
                         socket
                             .power
-                            .fetch_update(SeqCst, SeqCst, |_| {
-                                Some(rand::thread_rng().gen_range(1.0..10.0))
-                            })
-                            .unwrap_or(0.0);
+                            .store(rand::thread_rng().gen_range(1.0..10.0), SeqCst);
                     }
                     sockets.push(socket);
                 }
                 THERMOMETER_1 | THERMOMETER_2 => {
-                    let mut thermometer =
+                    let thermometer =
                         SmartThermometer::new(device.to_string(), room.to_string(), 0.0);
-                    thermometer.temp = rand::thread_rng().gen_range(20.0..30.0);
+                    thermometer
+                        .temp
+                        .store(rand::thread_rng().gen_range(20.0..30.0), SeqCst);
                     thermometers.push(thermometer);
                 }
                 SWITCH_1 | SWITCH_2 => {
