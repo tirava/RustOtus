@@ -1,4 +1,4 @@
-use crate::smart_device::{DeviceStatus, SmartDevice};
+use crate::smart_device::{AtomicDeviceStatus, DeviceStatus, SmartDevice};
 use atomic_float::AtomicF32;
 use rand::Rng;
 use std::fmt;
@@ -7,7 +7,7 @@ use std::sync::atomic::Ordering::SeqCst;
 pub struct SmartSocket {
     pub(crate) name: String,
     pub(crate) room: String,
-    pub status: DeviceStatus,
+    pub status: AtomicDeviceStatus,
     pub power: AtomicF32,
 }
 
@@ -16,7 +16,7 @@ impl SmartSocket {
         Box::leak(Box::new(Self {
             name,
             room,
-            status,
+            status: AtomicDeviceStatus::new(status),
             power: AtomicF32::new(power),
         }))
     }
@@ -27,7 +27,7 @@ impl fmt::Display for SmartSocket {
         write!(
             f,
             "статус - {}, мощность {:.2} pW",
-            self.status,
+            self.status.load(SeqCst),
             self.power.load(SeqCst)
         )
     }
@@ -39,7 +39,7 @@ impl SmartDevice for SmartSocket {
 
         match command {
             "on" => {
-                // self.status = DeviceStatus::On;
+                self.status.store(DeviceStatus::On, SeqCst);
                 self.power
                     .fetch_update(SeqCst, SeqCst, |_| {
                         Some(rand::thread_rng().gen_range(10.0..3000.0))
@@ -48,7 +48,7 @@ impl SmartDevice for SmartSocket {
                 "device is now ON".to_string()
             }
             "off" => {
-                // self.status = DeviceStatus::Off;
+                self.status.store(DeviceStatus::Off, SeqCst);
                 self.power
                     .fetch_update(SeqCst, SeqCst, |_| Some(0.0))
                     .unwrap_or(0.0);
@@ -60,7 +60,7 @@ impl SmartDevice for SmartSocket {
                     "name: {}, room: {}, status: {}, power: {:.2} pW",
                     self.name,
                     self.room,
-                    self.status,
+                    self.status.load(SeqCst),
                     self.power.load(SeqCst)
                 )
             }

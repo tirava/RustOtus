@@ -1,5 +1,6 @@
 use crate::smart_house::SmartHouseError;
 use async_trait::async_trait;
+use atomic_enum::atomic_enum;
 use std::fmt;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{TcpListener, TcpStream};
@@ -12,6 +13,7 @@ pub mod prelude {
     pub use crate::smart_thermometer::SmartThermometer;
 }
 
+#[atomic_enum]
 pub enum DeviceStatus {
     Off,
     On,

@@ -13,10 +13,16 @@ async fn main() -> Result<(), SmartHouseError> {
     let result = SmartSocket::send_command(SOCKET_ADDR, "power").await?;
     println!("CLIENT: SmartSocket command 'power' - '{}'\n", result);
 
+    let result = SmartSocket::send_command(SOCKET_ADDR, "info").await?;
+    println!("CLIENT: SmartSocket command 'info' - '{}'\n", result);
+
     let result = SmartSocket::send_command(SOCKET_ADDR, "off").await?;
     println!("CLIENT: SmartSocket command 'off' - '{}'\n", result);
     let result = SmartSocket::send_command(SOCKET_ADDR, "power").await?;
     println!("CLIENT: SmartSocket command 'power' - '{}'\n", result);
+
+    let result = SmartSocket::send_command(SOCKET_ADDR, "info").await?;
+    println!("CLIENT: SmartSocket command 'info' - '{}'\n", result);
 
     let result = SmartSocket::send_command(SOCKET_ADDR, "qqq").await?;
     println!("CLIENT: SmartSocket command 'qqq' - '{}'\n", result);

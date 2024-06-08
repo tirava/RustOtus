@@ -56,7 +56,7 @@ fn main() -> Result<(), SmartHouseError> {
                         0.0,
                     );
                     if device == SOCKET_1 {
-                        // socket.status = DeviceStatus::On;
+                        socket.status.store(DeviceStatus::On, SeqCst);
                         socket
                             .power
                             .fetch_update(SeqCst, SeqCst, |_| {
@@ -64,9 +64,9 @@ fn main() -> Result<(), SmartHouseError> {
                             })
                             .unwrap_or(0.0);
                     } else if device == SOCKET_2 {
-                        // socket.status = DeviceStatus::Off;
+                        socket.status.store(DeviceStatus::Off, SeqCst);
                     } else {
-                        // socket.status = DeviceStatus::On;
+                        socket.status.store(DeviceStatus::On, SeqCst);
                         socket
                             .power
                             .fetch_update(SeqCst, SeqCst, |_| {
