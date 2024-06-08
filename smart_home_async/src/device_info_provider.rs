@@ -5,7 +5,7 @@ pub trait DeviceInfoProvider {
 }
 
 pub struct OwningDeviceInfoProvider {
-    pub sockets: Vec<SmartSocket>,
+    pub sockets: Vec<&'static SmartSocket>,
 }
 
 pub struct BorrowingDeviceInfoProvider<'a> {

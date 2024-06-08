@@ -1,6 +1,7 @@
 use rand::Rng;
 use smart_home_async::prelude::*;
 use std::collections::HashMap;
+use std::sync::atomic::Ordering::SeqCst;
 
 const KITCHEN: &str = "Кухня";
 const LIVING_ROOM: &str = "Гостинная";
@@ -48,20 +49,30 @@ fn main() -> Result<(), SmartHouseError> {
         for device in devices {
             match device {
                 SOCKET_1 | SOCKET_2 | SOCKET_3 => {
-                    let mut socket = SmartSocket::new(
+                    let socket = SmartSocket::new(
                         device.to_string(),
                         room.to_string(),
                         DeviceStatus::Unknown,
                         0.0,
                     );
                     if device == SOCKET_1 {
-                        socket.status = DeviceStatus::On;
-                        socket.power = rand::thread_rng().gen_range(10.0..3000.0);
+                        // socket.status = DeviceStatus::On;
+                        socket
+                            .power
+                            .fetch_update(SeqCst, SeqCst, |_| {
+                                Some(rand::thread_rng().gen_range(10.0..3000.0))
+                            })
+                            .unwrap_or(0.0);
                     } else if device == SOCKET_2 {
-                        socket.status = DeviceStatus::Off;
+                        // socket.status = DeviceStatus::Off;
                     } else {
-                        socket.status = DeviceStatus::On;
-                        socket.power = rand::thread_rng().gen_range(1.0..10.0);
+                        // socket.status = DeviceStatus::On;
+                        socket
+                            .power
+                            .fetch_update(SeqCst, SeqCst, |_| {
+                                Some(rand::thread_rng().gen_range(1.0..10.0))
+                            })
+                            .unwrap_or(0.0);
                     }
                     sockets.push(socket);
                 }
