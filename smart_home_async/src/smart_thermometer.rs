@@ -22,7 +22,7 @@ impl fmt::Display for SmartThermometer {
 }
 
 impl SmartDevice for SmartThermometer {
-    fn listen(&mut self, addr: &str) -> Result<(), SmartHouseError> {
+    async fn listen(&mut self, addr: &str) -> Result<(), SmartHouseError> {
         let socket = UdpSocket::bind(addr)?;
         println!("SMART_THERMOMETER: UDP listening on {}...", addr);
 
@@ -53,24 +53,24 @@ impl SmartDevice for SmartThermometer {
         }
     }
 
-    fn send_command(addr: &str, command: &str) -> Result<String, SmartHouseError> {
-        println!(
-            "SMART_THERMOMETER: connecting to address '{}' with command '{}'...",
-            addr, command
-        );
-        let socket = UdpSocket::bind("0.0.0.0:0")?;
-
-        match socket.send_to(command.as_bytes(), addr) {
-            Ok(_) => (),
-            Err(err) => return Err(SmartHouseError::from(err)),
-        }
-
-        let mut buf = [0; 128];
-        match socket.recv_from(&mut buf) {
-            Ok((len, _)) => Ok(String::from_utf8_lossy(&buf[0..len]).to_string()),
-            Err(err) => Err(SmartHouseError::from(err)),
-        }
-    }
+    // fn send_command(addr: &str, command: &str) -> Result<String, SmartHouseError> {
+    //     println!(
+    //         "SMART_THERMOMETER: connecting to address '{}' with command '{}'...",
+    //         addr, command
+    //     );
+    //     let socket = UdpSocket::bind("0.0.0.0:0")?;
+    // 
+    //     match socket.send_to(command.as_bytes(), addr) {
+    //         Ok(_) => (),
+    //         Err(err) => return Err(SmartHouseError::from(err)),
+    //     }
+    // 
+    //     let mut buf = [0; 128];
+    //     match socket.recv_from(&mut buf) {
+    //         Ok((len, _)) => Ok(String::from_utf8_lossy(&buf[0..len]).to_string()),
+    //         Err(err) => Err(SmartHouseError::from(err)),
+    //     }
+    // }
 
     fn exec_command(&mut self, command: &str) -> String {
         print!("SMART_THERMOMETER: command '{command}' -> ");
