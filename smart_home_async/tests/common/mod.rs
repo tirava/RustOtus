@@ -16,6 +16,7 @@ pub const SWITCH_1: &str = "Выключатель-1";
 pub const SWITCH_2: &str = "Выключатель-2";
 pub const SOCKET_ADDR: &str = "127.0.0.1:54321";
 pub const THERMOMETER_ADDR: &str = "127.0.0.1:12345";
+pub const SWITCH_ADDR: &str = "127.0.0.1:31254";
 
 pub(crate) fn new_house() -> SmartHouse {
     SmartHouse::new(
@@ -44,8 +45,8 @@ pub fn run_socket_server(addr: &str) {
     let smart_socket = SmartSocket::new(
         SOCKET_1.to_string(),
         LIVING_ROOM.to_string(),
-        DeviceStatus::On,
-        111.222,
+        DeviceStatus::Off,
+        0.0,
     );
     tokio::spawn(async move {
         assert!(smart_socket.listen(&addr).await.is_err());
@@ -58,5 +59,14 @@ pub fn run_thermometer_server(addr: &str) {
         SmartThermometer::new(THERMOMETER_1.to_string(), BEDROOM.to_string(), 22.33);
     tokio::spawn(async move {
         assert!(smart_thermometer.listen(&addr).await.is_err());
+    });
+}
+
+pub fn run_switch_server(addr: &str) {
+    let addr = addr.to_string();
+    let smart_switch =
+        SmartSwitch::new(SOCKET_2.to_string(), KITCHEN.to_string(), DeviceStatus::Off);
+    tokio::spawn(async move {
+        assert!(smart_switch.listen(&addr).await.is_err());
     });
 }

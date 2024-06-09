@@ -62,4 +62,8 @@ impl SmartDevice for SmartSocket {
             _ => "unknown command".to_string(),
         }
     }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
 }

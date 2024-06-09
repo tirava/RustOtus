@@ -141,15 +141,15 @@ fn test_house_report() {
                     thermometers.push(thermometer);
                 }
                 SWITCH_1 | SWITCH_2 => {
-                    let mut switch = SmartSwitch::new(
+                    let switch = SmartSwitch::new(
                         device.to_string(),
                         room.to_string(),
                         DeviceStatus::Unknown,
                     );
                     if device == SWITCH_1 {
-                        switch.status = DeviceStatus::On;
+                        switch.status.store(DeviceStatus::On, SeqCst);
                     } else {
-                        switch.status = DeviceStatus::Off;
+                        switch.status.store(DeviceStatus::Off, SeqCst);
                     }
                     switches.push(switch);
                 }
@@ -218,8 +218,8 @@ async fn test_socket_client_server_async() {
     assert_eq!(
         result.unwrap(),
         format!(
-            "name: {SOCKET_1}, room: {LIVING_ROOM}, status: {}, power: 111.22 pW",
-            &DeviceStatus::On.to_string(),
+            "name: {SOCKET_1}, room: {LIVING_ROOM}, status: {}, power: 0.00 pW",
+            &DeviceStatus::Off.to_string(),
         )
     );
 
@@ -265,5 +265,46 @@ async fn test_thermometer_client_server_async() {
     );
 
     let result = SmartThermometer::send_command(THERMOMETER_ADDR, "qqq").await;
+    assert_eq!(result.unwrap(), "unknown command");
+}
+
+// тест клиент-сервер для выключателя
+#[tokio::test]
+async fn test_switch_client_server_async() {
+    run_switch_server(SWITCH_ADDR);
+    time::sleep(time::Duration::from_secs_f32(0.5)).await;
+
+    let result = SmartSwitch::send_command(SWITCH_ADDR, "info").await;
+    assert_eq!(
+        result.unwrap(),
+        format!(
+            "name: {SOCKET_2}, room: {KITCHEN}, status: {}",
+            &DeviceStatus::Off.to_string(),
+        )
+    );
+
+    let result = SmartSwitch::send_command(SWITCH_ADDR, "on").await;
+    assert_eq!(result.unwrap(), "device is now ON");
+    let result = SmartSwitch::send_command(SWITCH_ADDR, "info").await;
+    assert_eq!(
+        result.unwrap(),
+        format!(
+            "name: {SOCKET_2}, room: {KITCHEN}, status: {}",
+            &DeviceStatus::On.to_string(),
+        )
+    );
+
+    let result = SmartSwitch::send_command(SWITCH_ADDR, "off").await;
+    assert_eq!(result.unwrap(), "device is now OFF");
+    let result = SmartSwitch::send_command(SWITCH_ADDR, "info").await;
+    assert_eq!(
+        result.unwrap(),
+        format!(
+            "name: {SOCKET_2}, room: {KITCHEN}, status: {}",
+            &DeviceStatus::Off.to_string(),
+        )
+    );
+
+    let result = SmartSwitch::send_command(SWITCH_ADDR, "qqq").await;
     assert_eq!(result.unwrap(), "unknown command");
 }

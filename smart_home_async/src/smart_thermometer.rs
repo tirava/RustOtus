@@ -32,7 +32,11 @@ impl fmt::Display for SmartThermometer {
 impl SmartDevice for SmartThermometer {
     async fn listen(&'static self, addr: &str) -> Result<(), SmartHouseError> {
         let socket = UdpSocket::bind(addr).await?;
-        println!("SMART_THERMOMETER: UDP listening on {}...", addr);
+        println!(
+            "SMART_THERMOMETER: {}: UDP listening on {}...",
+            self.name(),
+            addr
+        );
 
         let mut buf = [0; 128];
         loop {
@@ -100,5 +104,9 @@ impl SmartDevice for SmartThermometer {
                 Err(_) => "unknown command".to_string(),
             },
         }
+    }
+
+    fn name(&self) -> &str {
+        &self.name
     }
 }

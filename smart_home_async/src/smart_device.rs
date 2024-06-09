@@ -34,7 +34,11 @@ impl fmt::Display for DeviceStatus {
 pub trait SmartDevice {
     async fn listen(&'static self, addr: &str) -> Result<(), SmartHouseError> {
         let listener = TcpListener::bind(addr).await?;
-        println!("SMART_DEVICE: TCP listening on {}...", addr);
+        println!(
+            "SMART_DEVICE: {}: TCP listening on {}...",
+            self.name(),
+            addr
+        );
 
         loop {
             let (stream, peer_addr) = match listener.accept().await {
@@ -101,6 +105,8 @@ pub trait SmartDevice {
             Err(err) => Err(SmartHouseError::from(err)),
         }
     }
+
+    fn name(&self) -> &str;
 
     fn exec_command(&self, _command: &str) -> String {
         String::from("OK")

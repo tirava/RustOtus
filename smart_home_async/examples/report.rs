@@ -79,15 +79,15 @@ fn main() -> Result<(), SmartHouseError> {
                     thermometers.push(thermometer);
                 }
                 SWITCH_1 | SWITCH_2 => {
-                    let mut switch = SmartSwitch::new(
+                    let switch = SmartSwitch::new(
                         device.to_string(),
                         room.to_string(),
                         DeviceStatus::Unknown,
                     );
                     if device == SWITCH_1 {
-                        switch.status = DeviceStatus::On;
+                        switch.status.store(DeviceStatus::On, SeqCst);
                     } else {
-                        switch.status = DeviceStatus::Off;
+                        switch.status.store(DeviceStatus::Off, SeqCst);
                     }
                     switches.push(switch);
                 }

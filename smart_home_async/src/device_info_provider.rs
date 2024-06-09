@@ -10,7 +10,7 @@ pub struct OwningDeviceInfoProvider {
 
 pub struct BorrowingDeviceInfoProvider<'a> {
     pub thermometers: &'a Vec<&'static SmartThermometer>,
-    pub switches: &'a Vec<SmartSwitch>,
+    pub switches: &'a Vec<&'static SmartSwitch>,
 }
 
 impl DeviceInfoProvider for OwningDeviceInfoProvider {
