@@ -41,15 +41,9 @@ async fn main() -> Result<(), SmartHouseError> {
     )
     .listen(SWITCH_ADDR);
 
-    match select! {
+    select! {
         st_result = smart_thermometer => st_result,
         ss_result = smart_socket => ss_result,
         sw_result = smart_switch => sw_result
-    } {
-        Ok(_) => Ok(()),
-        Err(err) => {
-            eprintln!("SERVER: error: {err}");
-            Err(err)
-        }
     }
 }
