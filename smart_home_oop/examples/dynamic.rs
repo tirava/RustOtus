@@ -1,4 +1,4 @@
-use smart_home_oop::composite_dynamic::{Object, File, Folder};
+use smart_home_oop::composite_dynamic::{File, Folder, Object};
 
 fn main() {
     let file1 = File::new("File 1");
