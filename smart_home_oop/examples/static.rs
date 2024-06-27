@@ -1,4 +1,4 @@
-use smart_home_oop::composite_static::{Object, File, Folder};
+use smart_home_oop::composite_static::{Disk, File, Folder, Object};
 
 fn main() {
     let file1 = File::new("File 1");
@@ -13,5 +13,8 @@ fn main() {
     folder2.add(file3);
     folder2.add(folder1);
 
-    folder2.search("rose");
+    let mut disk1 = Disk::new("Disk 1", "100_u8");
+    disk1.add(folder2);
+
+    disk1.search("Otus");
 }
