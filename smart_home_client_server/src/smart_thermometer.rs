@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::smart_device::SmartDevice;
+use std::fmt;
 
 pub struct SmartThermometer {
     pub(crate) name: String,

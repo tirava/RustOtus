@@ -11,3 +11,4 @@
 7. smart_home_client_server - Умная розетка по TCP.
 8. smart_home_threads_udp - Термометр по UDP.
 9. smart_home_async - Асинхронные модули работы с термометром и умной розеткой.
+10. smart_home_oop - Паттерны проектирования (Компоновщик).
