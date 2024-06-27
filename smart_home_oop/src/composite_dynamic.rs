@@ -1,4 +1,4 @@
-pub trait Component {
+pub trait Object {
     fn search(&self, keyword: &str);
 }
 
@@ -16,7 +16,7 @@ impl File {
     }
 }
 
-impl Component for File {
+impl Object for File {
     fn search(&self, keyword: &str) {
         println!("Searching for keyword {} in file {}", keyword, self.name);
     }
@@ -26,31 +26,31 @@ impl Component for File {
 
 pub struct Folder {
     name: String,
-    components: Vec<Box<dyn Component>>,
+    objects: Vec<Box<dyn Object>>,
 }
 
 impl Folder {
     pub fn new(name: &str) -> Self {
         Self {
             name: name.to_string(),
-            components: vec![],
+            objects: vec![],
         }
     }
 
-    pub fn add(&mut self, component: impl Component + 'static) {
-        self.components.push(Box::new(component));
+    pub fn add(&mut self, object: impl Object + 'static) {
+        self.objects.push(Box::new(object));
     }
 }
 
-impl Component for Folder {
+impl Object for Folder {
     fn search(&self, keyword: &str) {
         println!(
             "Searching recursively for keyword {} in folder {}",
             keyword, self.name
         );
 
-        for component in self.components.iter() {
-            component.search(keyword);
+        for object in self.objects.iter() {
+            object.search(keyword);
         }
     }
 }
