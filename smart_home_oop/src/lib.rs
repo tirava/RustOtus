@@ -1,1 +1,1 @@
-pub mod dynamic;
+pub mod composite_dynamic;
