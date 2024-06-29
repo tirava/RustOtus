@@ -8,8 +8,9 @@ members = [
     "smart_home_crud",
     "smart_home_client_server",
     "smart_home_threads_udp",
-    "smart_home_async", 
+    "smart_home_async",
     "oop",
+    "smart_home_thiserror"
 ]
 
 resolver = "2"
