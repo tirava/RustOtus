@@ -25,6 +25,10 @@ impl fmt::Display for SmartSwitch {
 }
 
 impl SmartDevice for SmartSwitch {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
     fn exec_command(&self, command: &str) -> String {
         print!("SMART_SWITCH: command '{command}' -> ");
 
@@ -47,9 +51,5 @@ impl SmartDevice for SmartSwitch {
             }
             _ => "unknown command".to_string(),
         }
-    }
-
-    fn name(&self) -> &str {
-        &self.name
     }
 }

@@ -34,6 +34,10 @@ impl fmt::Display for SmartSocket {
 }
 
 impl SmartDevice for SmartSocket {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
     fn exec_command(&self, command: &str) -> String {
         print!("SMART_SOCKET: command '{command}' -> ");
 
@@ -61,9 +65,5 @@ impl SmartDevice for SmartSocket {
             }
             _ => "unknown command".to_string(),
         }
-    }
-
-    fn name(&self) -> &str {
-        &self.name
     }
 }

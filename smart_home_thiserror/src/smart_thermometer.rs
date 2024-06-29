@@ -84,6 +84,10 @@ impl SmartDevice for SmartThermometer {
         }
     }
 
+    fn name(&self) -> &str {
+        &self.name
+    }
+
     fn exec_command(&self, command: &str) -> String {
         print!("SMART_THERMOMETER: command '{command}' -> ");
 
@@ -104,9 +108,5 @@ impl SmartDevice for SmartThermometer {
                 Err(_) => "unknown command".to_string(),
             },
         }
-    }
-
-    fn name(&self) -> &str {
-        &self.name
     }
 }
