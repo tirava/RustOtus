@@ -1,6 +1,6 @@
 use crate::device_info_provider::DeviceInfoProvider;
 use std::collections::{HashMap, HashSet};
-use std::{error, fmt, io};
+use thiserror::Error;
 
 pub struct SmartHouse {
     name: String,
@@ -132,72 +132,20 @@ impl SmartHouse {
     }
 }
 
+#[derive(Debug, Error)]
 pub enum SmartHouseError {
+    #[error("комнаты не найдены")]
     RoomsNotFoundError,
+    #[error("комната не найдена: {0}")]
     RoomNotFoundError(String),
+    #[error("комната уже существует: {0}")]
     RoomAlreadyExistsError(String),
+    #[error("устройства не найдены")]
     DevicesNotFoundError,
+    #[error("устройство '{0}' не найдено в комнате '{1}' ")]
     DeviceNotFoundError(String, String),
+    #[error("устройство '{0}' уже существует в комнате '{1}' ")]
     DeviceAlreadyExistsError(String, String),
-    IoError(io::Error),
-}
-
-impl fmt::Debug for SmartHouseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            SmartHouseError::RoomsNotFoundError => {
-                write!(f, "rooms not found")
-            }
-            SmartHouseError::RoomNotFoundError(s) => write!(f, "room not found: {}", s),
-            SmartHouseError::RoomAlreadyExistsError(s) => write!(f, "room already exists: {}", s),
-            SmartHouseError::DevicesNotFoundError => write!(f, "devices not found"),
-            SmartHouseError::DeviceNotFoundError(room, device) => {
-                write!(f, "device '{}' not found in room '{}'", device, room)
-            }
-            SmartHouseError::DeviceAlreadyExistsError(room, device) => {
-                write!(f, "device '{}' already exists in room '{}'", device, room)
-            }
-            SmartHouseError::IoError(err) => {
-                write!(f, "i/o error: {}", err)
-            }
-        }
-    }
-}
-
-impl fmt::Display for SmartHouseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            SmartHouseError::RoomsNotFoundError => {
-                write!(f, "комнаты не найдены")
-            }
-            SmartHouseError::RoomNotFoundError(s) => write!(f, "комната не найдена: {}", s),
-            SmartHouseError::RoomAlreadyExistsError(s) => {
-                write!(f, "комната уже существует: {}", s)
-            }
-            SmartHouseError::DevicesNotFoundError => write!(f, "устройства не найдены"),
-            SmartHouseError::DeviceNotFoundError(room, device) => write!(
-                f,
-                "устройство '{}' не найдено в комнате '{}' ",
-                device, room
-            ),
-            SmartHouseError::DeviceAlreadyExistsError(room, device) => {
-                write!(
-                    f,
-                    "устройство '{}' уже существует в комнате '{}'",
-                    device, room
-                )
-            }
-            SmartHouseError::IoError(err) => {
-                write!(f, "ошибка ввода-вывода: {}", err)
-            }
-        }
-    }
-}
-
-impl error::Error for SmartHouseError {}
-
-impl From<io::Error> for SmartHouseError {
-    fn from(err: io::Error) -> Self {
-        SmartHouseError::IoError(err)
-    }
+    #[error("ошибка ввода-вывода: {0}")]
+    IoError(#[from] std::io::Error),
 }
