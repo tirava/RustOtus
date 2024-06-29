@@ -1,4 +1,4 @@
-use smart_home_oop::{Disk, File, Folder, Object};
+use oop::{Disk, File, Folder, Object};
 
 fn main() {
     let file1 = File::new("File 1");
