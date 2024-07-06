@@ -41,3 +41,40 @@ fn main() {
     let my_wrap = Wrap(my_array_s);
     println!("{}", my_wrap);
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn newtype_i32() {
+        let my_array = [1, 2, 3];
+        let my_wrap = super::Wrap(my_array);
+        assert_eq!(my_wrap.to_string(), "Array -> 1, 2, 3");
+    }
+
+    #[test]
+    fn newtype_f64() {
+        let my_array = [1.5, 2.5, 3.5, 4.5, 5.2, 6.75, 8.90, 8.90, 8.90];
+        let my_wrap = super::Wrap(my_array);
+        assert_eq!(
+            my_wrap.to_string(),
+            "Array -> 1.5, 2.5, 3.5, 4.5, 5.2, 6.75, 8.9, 8.9, 8.9"
+        );
+    }
+
+    #[test]
+    fn newtype_char() {
+        let my_array = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'j', 'j'];
+        let my_wrap = super::Wrap(my_array);
+        assert_eq!(
+            my_wrap.to_string(),
+            "Array -> a, b, c, d, e, f, g, h, i, j, j, j"
+        );
+    }
+
+    #[test]
+    fn newtype_string() {
+        let my_array = ["Hello".to_string(), "Newtype!".to_string()];
+        let my_wrap = super::Wrap(my_array);
+        assert_eq!(my_wrap.to_string(), "Array -> Hello, Newtype!");
+    }
+}
