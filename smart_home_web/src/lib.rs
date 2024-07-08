@@ -1,4 +1,5 @@
 mod device_info_provider;
+mod http_handler;
 mod http_server;
 pub mod smart_device;
 mod smart_house;
