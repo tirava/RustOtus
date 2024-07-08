@@ -30,13 +30,14 @@ impl HTTPServer {
                 .wrap(Logger::new(
                     "%{r}a '%r' %s %b '%{Referer}i' '%{User-Agent}i' %T",
                 ))
-                .service(get_health_check)
-                .service(get_smart_thermometer_info)
                 .service(
                     SwaggerUi::new("/swagger-ui/{_:.*}")
                         .url("/api-docs/openapi.json", ApiDoc::openapi()),
                 )
                 .service(web::redirect("/", "/swagger-ui/"))
+                .service(head_health_check)
+                .service(get_rooms)
+                .service(get_room_devices)
         })
         .workers(self.workers)
         .bind(&self.bind_address)?
