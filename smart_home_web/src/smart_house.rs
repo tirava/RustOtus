@@ -148,4 +148,6 @@ pub enum SmartHouseError {
     DeviceAlreadyExistsError(String, String),
     #[error("ошибка ввода-вывода: {0}")]
     IoError(#[from] std::io::Error),
+    #[error("ошибка парсинга: {0}")]
+    ParseError(#[from] std::num::ParseIntError),
 }
