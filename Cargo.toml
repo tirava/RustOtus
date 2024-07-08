@@ -11,7 +11,8 @@ members = [
     "smart_home_async",
     "oop",
     "smart_home_thiserror",
-    "patterns"
+    "patterns",
+    "smart_home_web"
 ]
 
 resolver = "2"
