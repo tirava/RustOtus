@@ -11,7 +11,11 @@ async fn main() -> Result<(), SmartHouseError> {
     let house = SmartHouse::new(
         "Мой умный дом".to_string(),
         "ул. Умных домов, д.1, кв.2".to_string(),
-        HashMap::from([("KITCHEN", &[][..]), ("LIVING_ROOM", &[]), ("BEDROOM", &[])]),
+        HashMap::from([
+            ("KITCHEN", &["SOCKET", "THERMOMETER", "SWITCH"][..]),
+            ("LIVING_ROOM", &[]),
+            ("BEDROOM", &[]),
+        ]),
     );
 
     HTTPServer::new(bind_address, log_level, workers, AppData::new(house))

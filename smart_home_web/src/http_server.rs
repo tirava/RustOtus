@@ -1,5 +1,5 @@
-use crate::prelude::AppData;
 use crate::http_handler::prelude::*;
+use crate::prelude::AppData;
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use log::info;
@@ -31,7 +31,7 @@ impl HTTPServer {
         HttpServer::new(move || {
             App::new()
                 .wrap(Logger::new(
-                    "%{r}a '%r' %s %b '%{Referer}i' '%{User-Agent}i' %T",
+                    "%{r}a '%r' %s %b '%{Referer}i' '%{User-Agent}i' %D ms",
                 ))
                 .service(
                     SwaggerUi::new("/swagger-ui/{_:.*}")

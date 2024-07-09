@@ -13,4 +13,8 @@ impl AppData {
     pub fn rooms(&self) -> Vec<&str> {
         self.house.rooms().unwrap_or_default()
     }
+
+    pub fn devices(&self, room: &str) -> Vec<&str> {
+        self.house.devices(room).unwrap_or_default()
+    }
 }

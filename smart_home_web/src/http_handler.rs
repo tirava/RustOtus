@@ -67,13 +67,13 @@ async fn get_rooms(app_data: web::Data<AppData>) -> impl Responder {
 #[utoipa::path(
     tag = "rooms and devices",
     responses(
-        (status = 200, description = "OK", body = Response),
+        (status = 200, description = "OK", body = [&str]),
         (status = 500, description = "Internal Server Error", body = Response),
     )
 )]
 #[get("/rooms/{room_name}/devices")]
-async fn get_room_devices() -> impl Responder {
-    HttpResponse::Ok()
+async fn get_room_devices(path: web::Path<String>, app_data: web::Data<AppData>) -> impl Responder {
+    HttpResponse::Ok().json(app_data.devices(path.as_str()))
 }
 
 /// Get smart house report
