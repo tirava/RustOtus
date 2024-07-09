@@ -38,6 +38,11 @@ impl HTTPServer {
                 .service(head_health_check)
                 .service(get_rooms)
                 .service(get_room_devices)
+                .service(get_rooms_report)
+                .service(post_room)
+                .service(delete_room)
+                .service(post_device)
+                .service(delete_device)
         })
         .workers(self.workers)
         .bind(&self.bind_address)?

@@ -1,12 +1,13 @@
-use actix_web::{get, head, HttpResponse, Responder};
+use actix_web::{delete, get, head, post, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use utoipa::{OpenApi, ToSchema};
 
 pub mod prelude {
-    pub use crate::http_handler::get_room_devices;
-    pub use crate::http_handler::get_rooms;
-    pub use crate::http_handler::head_health_check;
     pub use crate::http_handler::ApiDoc;
+    pub use crate::http_handler::{
+        delete_device, delete_room, get_room_devices, get_rooms, get_rooms_report,
+        head_health_check, post_device, post_room,
+    };
 }
 
 #[derive(OpenApi)]
@@ -14,7 +15,12 @@ pub mod prelude {
     paths(
         head_health_check,
         get_rooms,
-        get_room_devices
+        get_room_devices,
+        get_rooms_report,
+        post_room,
+        delete_room,
+        post_device,
+        delete_device
     ),
     components(
         schemas(Response)
@@ -45,7 +51,7 @@ async fn head_health_check() -> impl Responder {
 
 /// Get all rooms
 #[utoipa::path(
-    tag = "rooms",
+    tag = "rooms and devices",
     responses(
         (status = 200, description = "OK", body = Response),
         (status = 500, description = "Internal Server Error", body = Response),
@@ -56,7 +62,33 @@ async fn get_rooms() -> impl Responder {
     HttpResponse::Ok()
 }
 
-/// Get all devices in a room
+/// Get all devices from room
+#[utoipa::path(
+    tag = "rooms and devices",
+    responses(
+        (status = 200, description = "OK", body = Response),
+        (status = 500, description = "Internal Server Error", body = Response),
+    )
+)]
+#[get("/rooms/{room_name}/devices")]
+async fn get_room_devices() -> impl Responder {
+    HttpResponse::Ok()
+}
+
+/// Get smart house report
+#[utoipa::path(
+    tag = "rooms and devices",
+    responses(
+        (status = 200, description = "OK", body = Response),
+        (status = 500, description = "Internal Server Error", body = Response),
+    )
+)]
+#[get("/rooms/report")]
+async fn get_rooms_report() -> impl Responder {
+    HttpResponse::Ok()
+}
+
+/// Add room
 #[utoipa::path(
     tag = "rooms",
     responses(
@@ -64,7 +96,46 @@ async fn get_rooms() -> impl Responder {
         (status = 500, description = "Internal Server Error", body = Response),
     )
 )]
-#[get("/rooms/{room}/devices")]
-async fn get_room_devices() -> impl Responder {
+#[post("/room/{room_name}")]
+async fn post_room() -> impl Responder {
+    HttpResponse::Ok()
+}
+
+/// Remove room
+#[utoipa::path(
+    tag = "rooms",
+    responses(
+        (status = 200, description = "OK", body = Response),
+        (status = 500, description = "Internal Server Error", body = Response),
+    )
+)]
+#[delete("/room/{room_name}")]
+async fn delete_room() -> impl Responder {
+    HttpResponse::Ok()
+}
+
+/// Add device into room
+#[utoipa::path(
+    tag = "devices",
+    responses(
+        (status = 200, description = "OK", body = Response),
+        (status = 500, description = "Internal Server Error", body = Response),
+    )
+)]
+#[post("/room/{room_name}/device/{device_name}")]
+async fn post_device() -> impl Responder {
+    HttpResponse::Ok()
+}
+
+/// Remove device from room
+#[utoipa::path(
+    tag = "devices",
+    responses(
+        (status = 200, description = "OK", body = Response),
+        (status = 500, description = "Internal Server Error", body = Response),
+    )
+)]
+#[delete("/room/{room_name}/device/{device_name}")]
+async fn delete_device() -> impl Responder {
     HttpResponse::Ok()
 }
