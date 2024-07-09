@@ -9,4 +9,8 @@ impl AppData {
     pub fn new(house: SmartHouse) -> Self {
         Self { house }
     }
+
+    pub fn rooms(&self) -> Vec<&str> {
+        self.house.rooms().unwrap_or_default()
+    }
 }

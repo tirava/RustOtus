@@ -1,7 +1,7 @@
-use actix_web::{delete, get, head, post, HttpResponse, Responder, web};
+use crate::prelude::AppData;
+use actix_web::{delete, get, head, post, web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use utoipa::{OpenApi, ToSchema};
-use crate::prelude::AppData;
 
 pub mod prelude {
     pub use crate::http_handler::ApiDoc;
@@ -54,13 +54,13 @@ async fn head_health_check() -> impl Responder {
 #[utoipa::path(
     tag = "rooms and devices",
     responses(
-        (status = 200, description = "OK", body = Response),
+        (status = 200, description = "OK", body = [&str]),
         (status = 500, description = "Internal Server Error", body = Response),
     )
 )]
 #[get("/rooms")]
-async fn get_rooms(app_data: web::Data<AppData>,) -> impl Responder {
-    HttpResponse::Ok()
+async fn get_rooms(app_data: web::Data<AppData>) -> impl Responder {
+    HttpResponse::Ok().json(app_data.rooms())
 }
 
 /// Get all devices from room
