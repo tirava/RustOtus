@@ -2,6 +2,7 @@ use crate::device_info_provider::DeviceInfoProvider;
 use std::collections::{HashMap, HashSet};
 use thiserror::Error;
 
+#[derive(Clone)]
 pub struct SmartHouse {
     name: String,
     address: String,

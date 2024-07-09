@@ -1,3 +1,4 @@
+use crate::prelude::AppData;
 use crate::http_handler::prelude::*;
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
@@ -9,16 +10,18 @@ use utoipa_swagger_ui::SwaggerUi;
 pub struct HTTPServer {
     bind_address: String,
     workers: usize,
+    app_data: AppData,
 }
 
 impl HTTPServer {
-    pub fn new(bind_address: String, log_level: String, workers: usize) -> Self {
+    pub fn new(bind_address: String, log_level: String, workers: usize, app_data: AppData) -> Self {
         env::set_var("RUST_LOG", log_level);
         env_logger::init();
 
         Self {
             bind_address,
             workers,
+            app_data,
         }
     }
 
@@ -34,6 +37,7 @@ impl HTTPServer {
                     SwaggerUi::new("/swagger-ui/{_:.*}")
                         .url("/api-docs/openapi.json", ApiDoc::openapi()),
                 )
+                .app_data(web::Data::new(self.app_data.clone()))
                 .service(web::redirect("/", "/swagger-ui/"))
                 .service(head_health_check)
                 .service(get_rooms)

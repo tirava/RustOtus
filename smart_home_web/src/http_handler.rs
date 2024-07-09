@@ -1,6 +1,7 @@
-use actix_web::{delete, get, head, post, HttpResponse, Responder};
+use actix_web::{delete, get, head, post, HttpResponse, Responder, web};
 use serde::{Deserialize, Serialize};
 use utoipa::{OpenApi, ToSchema};
+use crate::prelude::AppData;
 
 pub mod prelude {
     pub use crate::http_handler::ApiDoc;
@@ -58,7 +59,7 @@ async fn head_health_check() -> impl Responder {
     )
 )]
 #[get("/rooms")]
-async fn get_rooms() -> impl Responder {
+async fn get_rooms(app_data: web::Data<AppData>,) -> impl Responder {
     HttpResponse::Ok()
 }
 
