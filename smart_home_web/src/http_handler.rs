@@ -1,5 +1,6 @@
 use crate::prelude::AppData;
 use actix_web::{delete, get, post, web, HttpResponse, Responder};
+use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 use utoipa::{OpenApi, ToSchema};
 
@@ -11,10 +12,10 @@ pub mod prelude {
     };
 }
 
-const ERROR: &str = "Error";
-const ROOM_NOT_FOUND: &str = "Room not found";
+const ERROR: &str = "ошибка";
+const ROOM_NOT_FOUND: &str = "комната не найдена";
 const OK: &str = "OK";
-const INTERNAL_SERVER_ERROR: &str = "Internal Server Error";
+const INTERNAL_SERVER_ERROR: &str = "внутренняя ошибка сервера";
 
 #[derive(OpenApi)]
 #[openapi(
@@ -32,7 +33,7 @@ const INTERNAL_SERVER_ERROR: &str = "Internal Server Error";
         schemas(Response)
     ),
     tags(
-        (name = "Smart Home REST API", description = "Smart Home with smart devices")
+        (name = "Smart Home REST API", description = "Умный дом с умными устройствами")
     ),
 )]
 pub struct ApiDoc;
@@ -40,10 +41,10 @@ pub struct ApiDoc;
 #[derive(Serialize, Deserialize, ToSchema)]
 struct Response {
     status: &'static str,
-    message: &'static str,
+    message: String,
 }
 
-/// Get all rooms
+/// Список всех комнат
 #[utoipa::path(
     tag = "rooms",
     responses(
@@ -52,24 +53,34 @@ struct Response {
     )
 )]
 #[get("/rooms")]
-async fn get_rooms(app_data: web::Data<AppData>) -> impl Responder {
+async fn get_rooms(app_data: web::Data<Mutex<AppData>>) -> impl Responder {
+    let app_data = app_data.lock();
+
     HttpResponse::Ok().json(app_data.rooms())
 }
 
-/// Add room
+/// Добавить комнату
 #[utoipa::path(
     tag = "rooms",
     responses(
-        (status = 200, description = OK, body = Response),
+        (status = 201, description = OK, body = Response),
         (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
     )
 )]
 #[post("/room/{room_name}")]
-async fn post_room() -> impl Responder {
-    HttpResponse::Ok()
+async fn post_room(path: web::Path<String>, app_data: web::Data<Mutex<AppData>>) -> impl Responder {
+    let mut app_data = app_data.lock();
+    if let Err(err) = app_data.add_room(path.as_str()) {
+        return HttpResponse::InternalServerError().json(Response {
+            status: ERROR,
+            message: err.to_string(),
+        });
+    }
+
+    HttpResponse::Created().into()
 }
 
-/// Remove room
+/// Удалить комнату
 #[utoipa::path(
     tag = "rooms",
     responses(
@@ -78,11 +89,22 @@ async fn post_room() -> impl Responder {
     )
 )]
 #[delete("/room/{room_name}")]
-async fn delete_room() -> impl Responder {
-    HttpResponse::Ok()
+async fn delete_room(
+    path: web::Path<String>,
+    app_data: web::Data<Mutex<AppData>>,
+) -> impl Responder {
+    let mut app_data = app_data.lock();
+    if let Err(err) = app_data.remove_room(path.as_str()) {
+        return HttpResponse::InternalServerError().json(Response {
+            status: ERROR,
+            message: err.to_string(),
+        });
+    }
+
+    HttpResponse::Ok().into()
 }
 
-/// Get all devices from room
+/// Список всех устройств в комнате
 #[utoipa::path(
     tag = "devices",
     responses(
@@ -92,13 +114,17 @@ async fn delete_room() -> impl Responder {
     )
 )]
 #[get("/devices/{room_name}")]
-async fn get_room_devices(path: web::Path<String>, app_data: web::Data<AppData>) -> impl Responder {
+async fn get_room_devices(
+    path: web::Path<String>,
+    app_data: web::Data<Mutex<AppData>>,
+) -> impl Responder {
+    let app_data = app_data.lock();
     let devices = match app_data.devices(path.as_str()) {
         Some(devices) => devices,
         None => {
             return HttpResponse::NotFound().json(Response {
                 status: ERROR,
-                message: ROOM_NOT_FOUND,
+                message: ROOM_NOT_FOUND.to_string(),
             })
         }
     };
@@ -106,7 +132,7 @@ async fn get_room_devices(path: web::Path<String>, app_data: web::Data<AppData>)
     HttpResponse::Ok().json(devices)
 }
 
-/// Get device status
+/// Статус устройства
 #[utoipa::path(
     tag = "devices",
     responses(
@@ -116,23 +142,24 @@ async fn get_room_devices(path: web::Path<String>, app_data: web::Data<AppData>)
 )]
 #[get("/device/{device_name}/room/{room_name}")]
 async fn get_device() -> impl Responder {
+    // todo
     HttpResponse::Ok()
 }
 
-/// Add device into room
+/// Добавить устройство в комнату
 #[utoipa::path(
     tag = "devices",
     responses(
-        (status = 200, description = OK, body = Response),
+        (status = 201, description = OK, body = Response),
         (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
     )
 )]
 #[post("/device/{device_name}/room/{room_name}")]
 async fn post_device() -> impl Responder {
-    HttpResponse::Ok()
+    HttpResponse::Created()
 }
 
-/// Remove device from room
+/// Удалить устройство из комнаты
 #[utoipa::path(
     tag = "devices",
     responses(
@@ -145,7 +172,7 @@ async fn delete_device() -> impl Responder {
     HttpResponse::Ok()
 }
 
-/// Get smart house report
+/// Отчёт о состоянии умного дома
 #[utoipa::path(
     tag = "reports",
     responses(

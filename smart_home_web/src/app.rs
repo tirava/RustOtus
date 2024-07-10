@@ -1,4 +1,4 @@
-use crate::prelude::SmartHouse;
+use crate::prelude::{SmartHouse, SmartHouseError};
 
 #[derive(Clone)]
 pub struct AppData {
@@ -16,5 +16,13 @@ impl AppData {
 
     pub fn devices(&self, room: &str) -> Option<Vec<&str>> {
         self.house.devices(room)
+    }
+
+    pub fn add_room(&mut self, room: &str) -> Result<(), SmartHouseError> {
+        self.house.add_room(room)
+    }
+
+    pub fn remove_room(&mut self, room: &str) -> Result<(), SmartHouseError> {
+        self.house.remove_room(room)
     }
 }
