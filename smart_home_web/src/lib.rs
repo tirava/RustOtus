@@ -11,8 +11,8 @@ mod smart_thermometer;
 pub mod prelude {
     pub use crate::app::AppData;
     pub use crate::device_info_provider::{BorrowingDeviceInfoProvider, OwningDeviceInfoProvider};
+    pub use crate::http_handler::prelude::*;
     pub use crate::http_server::HTTPServer;
     pub use crate::smart_device::prelude::*;
-    pub use crate::http_handler::prelude::*;
     pub use crate::smart_house::{SmartHouse, SmartHouseError};
 }
