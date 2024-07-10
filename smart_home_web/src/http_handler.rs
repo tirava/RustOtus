@@ -1,7 +1,7 @@
 use crate::prelude::AppData;
 use actix_web::{delete, get, post, web, HttpResponse, Responder};
 use parking_lot::Mutex;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use utoipa::{OpenApi, ToSchema};
 
 pub mod prelude {
@@ -38,7 +38,7 @@ const INTERNAL_SERVER_ERROR: &str = "внутренняя ошибка серв�
 )]
 pub struct ApiDoc;
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, ToSchema)]
 struct Response {
     status: &'static str,
     message: String,
@@ -63,7 +63,7 @@ async fn get_rooms(app_data: web::Data<Mutex<AppData>>) -> impl Responder {
 #[utoipa::path(
     tag = "rooms",
     responses(
-        (status = 201, description = OK, body = Response),
+        (status = 201, description = OK),
         (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
     )
 )]
@@ -84,7 +84,7 @@ async fn post_room(path: web::Path<String>, app_data: web::Data<Mutex<AppData>>)
 #[utoipa::path(
     tag = "rooms",
     responses(
-        (status = 200, description = OK, body = Response),
+        (status = 200, description = OK),
         (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
     )
 )]
@@ -109,7 +109,6 @@ async fn delete_room(
     tag = "devices",
     responses(
         (status = 200, description = OK, body = [&str]),
-        (status = 404, description = ROOM_NOT_FOUND, body = Response),
         (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
     )
 )]
@@ -122,14 +121,64 @@ async fn get_room_devices(
     let devices = match app_data.devices(path.as_str()) {
         Some(devices) => devices,
         None => {
-            return HttpResponse::NotFound().json(Response {
+            return HttpResponse::InternalServerError().json(Response {
                 status: ERROR,
-                message: ROOM_NOT_FOUND.to_string(),
+                message: format!("{}: {}", ROOM_NOT_FOUND, path),
             })
         }
     };
 
     HttpResponse::Ok().json(devices)
+}
+
+/// Добавить устройство в комнату
+#[utoipa::path(
+    tag = "devices",
+    responses(
+        (status = 201, description = OK, body = Response),
+        (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
+    )
+)]
+#[post("/device/{device_name}/room/{room_name}")]
+async fn post_device(
+    path: web::Path<(String, String)>,
+    app_data: web::Data<Mutex<AppData>>,
+) -> impl Responder {
+    let mut app_data = app_data.lock();
+    let (room_name, device_name) = path.into_inner();
+    if let Err(err) = app_data.add_device(device_name.as_str(), room_name.as_str()) {
+        return HttpResponse::InternalServerError().json(Response {
+            status: ERROR,
+            message: err.to_string(),
+        });
+    }
+
+    HttpResponse::Created().into()
+}
+
+/// Удалить устройство из комнаты
+#[utoipa::path(
+    tag = "devices",
+    responses(
+        (status = 200, description = OK),
+        (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
+    )
+)]
+#[delete("/device/{device_name}/room/{room_name}")]
+async fn delete_device(
+    path: web::Path<(String, String)>,
+    app_data: web::Data<Mutex<AppData>>,
+) -> impl Responder {
+    let mut app_data = app_data.lock();
+    let (room_name, device_name) = path.into_inner();
+    if let Err(err) = app_data.remove_device(device_name.as_str(), room_name.as_str()) {
+        return HttpResponse::InternalServerError().json(Response {
+            status: ERROR,
+            message: err.to_string(),
+        });
+    }
+
+    HttpResponse::Ok().into()
 }
 
 /// Статус устройства
@@ -143,32 +192,6 @@ async fn get_room_devices(
 #[get("/device/{device_name}/room/{room_name}")]
 async fn get_device() -> impl Responder {
     // todo
-    HttpResponse::Ok()
-}
-
-/// Добавить устройство в комнату
-#[utoipa::path(
-    tag = "devices",
-    responses(
-        (status = 201, description = OK, body = Response),
-        (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
-    )
-)]
-#[post("/device/{device_name}/room/{room_name}")]
-async fn post_device() -> impl Responder {
-    HttpResponse::Created()
-}
-
-/// Удалить устройство из комнаты
-#[utoipa::path(
-    tag = "devices",
-    responses(
-        (status = 200, description = OK, body = Response),
-        (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
-    )
-)]
-#[delete("/device/{device_name}/room/{room_name}")]
-async fn delete_device() -> impl Responder {
     HttpResponse::Ok()
 }
 

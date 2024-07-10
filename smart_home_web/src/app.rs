@@ -25,4 +25,12 @@ impl AppData {
     pub fn remove_room(&mut self, room: &str) -> Result<(), SmartHouseError> {
         self.house.remove_room(room)
     }
+
+    pub fn add_device(&mut self, room: &str, device: &str) -> Result<(), SmartHouseError> {
+        self.house.add_device(room, device)
+    }
+
+    pub fn remove_device(&mut self, room: &str, device: &str) -> Result<(), SmartHouseError> {
+        self.house.remove_device(room, device)
+    }
 }
