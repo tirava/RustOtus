@@ -17,15 +17,15 @@ impl AppData {
         self.storage.add_room(room).await
     }
 
+    pub async fn remove_room(&self, room: &str) -> Result<(), SmartHouseError> {
+        self.storage.remove_room(room).await
+    }
+
     // pub async fn devices(&self, room: &str) -> Result<Vec<&str>, SmartHouseError> {
     //     match self.house.devices(room) {
     //         Some(devices) => Ok(devices),
     //         None => Err(SmartHouseError::RoomNotFoundError(room.to_string())),
     //     }
-    // }
-    //
-    // pub async fn remove_room(&mut self, room: &str) -> Result<(), SmartHouseError> {
-    //     self.house.remove_room(room)
     // }
     //
     // pub async fn add_device(&mut self, room: &str, device: &str) -> Result<(), SmartHouseError> {

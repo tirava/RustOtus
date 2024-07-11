@@ -1,20 +1,21 @@
 use crate::prelude::{AppData, SmartHouseError};
 use actix_web::http::StatusCode;
-use actix_web::{get, post, web, HttpResponse, Responder, ResponseError};
+use actix_web::{delete, get, post, web, HttpResponse, Responder, ResponseError};
 use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 use utoipa::{OpenApi, ToSchema};
 
 pub mod prelude {
     pub use crate::http_handler::{
+        delete_room,
         get_rooms,
-        // delete_device, delete_room, get_device, get_house_report, get_room_devices, post_device,
+        // delete_device, get_device, get_house_report, get_room_devices, post_device,
         post_room,
     };
     pub use crate::http_handler::{ApiDoc, SmartDeviceInfo, SmartHouseReport};
 }
 
-// const ROOM_NOT_FOUND: &str = "комната не найдена";
+const ROOM_NOT_FOUND: &str = "комната не найдена";
 // const DEVICE_NOT_FOUND: &str = "устройство не найдено";
 // const ROOM_OR_DEVICE_NOT_FOUND: &str = "комната или устройство не найдены";
 const OK: &str = "OK";
@@ -27,8 +28,8 @@ const INTERNAL_SERVER_ERROR: &str = "внутренняя ошибка серв�
     paths(
         get_rooms,
         post_room,
+        delete_room,
         // get_room_devices,
-        // delete_room,
         // get_device,
         // post_device,
         // delete_device,
@@ -90,26 +91,25 @@ async fn post_room(
     Ok(HttpResponse::Created())
 }
 
-// /// Удалить комнату
-// #[utoipa::path(
-//     tag = "rooms",
-//     responses(
-//         (status = 200, description = OK),
-//         (status = 404, description = ROOM_NOT_FOUND),
-//         (status = 500, description = INTERNAL_SERVER_ERROR),
-//     )
-// )]
-// #[delete("/room/{room_name}")]
-// async fn delete_room(
-//     path: web::Path<String>,
-//     app_data: web::Data<Mutex<AppData>>,
-// ) -> Result<impl Responder, SmartHouseError> {
-//     let mut app_data = app_data.lock();
-//     app_data.remove_room(&path).await?;
-//
-//     Ok(HttpResponse::Ok())
-// }
-//
+/// Удалить комнату
+#[utoipa::path(
+    tag = "rooms",
+    responses(
+        (status = 200, description = OK),
+        (status = 404, description = ROOM_NOT_FOUND),
+        (status = 500, description = INTERNAL_SERVER_ERROR),
+    )
+)]
+#[delete("/room/{room_name}")]
+async fn delete_room(
+    path: web::Path<String>,
+    app_data: web::Data<AppData>,
+) -> Result<impl Responder, SmartHouseError> {
+    app_data.remove_room(&path).await?;
+
+    Ok(HttpResponse::Ok())
+}
+
 // /// Список всех устройств в комнате
 // #[utoipa::path(
 //     tag = "devices",
