@@ -8,8 +8,9 @@ use utoipa::{OpenApi, ToSchema};
 pub mod prelude {
     pub use crate::http_handler::{
         delete_room,
+        get_room_devices,
         get_rooms,
-        // delete_device, get_device, get_house_report, get_room_devices, post_device,
+        // delete_device, get_device, get_house_report, post_device,
         post_room,
     };
     pub use crate::http_handler::{ApiDoc, SmartDeviceInfo, SmartHouseReport};
@@ -29,7 +30,7 @@ const INTERNAL_SERVER_ERROR: &str = "внутренняя ошибка серв�
         get_rooms,
         post_room,
         delete_room,
-        // get_room_devices,
+        get_room_devices,
         // get_device,
         // post_device,
         // delete_device,
@@ -110,26 +111,23 @@ async fn delete_room(
     Ok(HttpResponse::Ok())
 }
 
-// /// Список всех устройств в комнате
-// #[utoipa::path(
-//     tag = "devices",
-//     responses(
-//         (status = 200, description = OK, body = [&str]),
-//         (status = 404, description = ROOM_NOT_FOUND),
-//         (status = 500, description = INTERNAL_SERVER_ERROR),
-//     )
-// )]
-// #[get("/devices/{room_name}")]
-// async fn get_room_devices(
-//     path: web::Path<String>,
-//     app_data: web::Data<Mutex<AppData>>,
-// ) -> Result<impl Responder, SmartHouseError> {
-//     let app_data = app_data.lock();
-//     let devices = app_data.devices(&path).await?;
-//
-//     Ok(HttpResponse::Ok().json(devices))
-// }
-//
+/// Список всех устройств в комнате
+#[utoipa::path(
+    tag = "devices",
+    responses(
+        (status = 200, description = OK, body = [&str]),
+        (status = 404, description = ROOM_NOT_FOUND),
+        (status = 500, description = INTERNAL_SERVER_ERROR),
+    )
+)]
+#[get("/devices/{room_name}")]
+async fn get_room_devices(
+    path: web::Path<String>,
+    app_data: web::Data<AppData>,
+) -> Result<impl Responder, SmartHouseError> {
+    Ok(HttpResponse::Ok().json(app_data.devices(&path).await?))
+}
+
 // /// Добавить устройство в комнату
 // #[utoipa::path(
 //     tag = "devices",

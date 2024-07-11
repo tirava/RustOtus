@@ -13,7 +13,10 @@ pub trait SmartHouseStorage {
     async fn rooms(&self) -> Result<Vec<String>, SmartHouseError>;
 
     async fn add_room(&self, room: &str) -> Result<(), SmartHouseError>;
+
     async fn remove_room(&self, room: &str) -> Result<(), SmartHouseError>;
+
+    async fn devices(&self, room: &str) -> Result<Vec<String>, SmartHouseError>;
 }
 
 pub struct SmartHouseStorageMemory {
@@ -53,13 +56,19 @@ impl SmartHouseStorage for SmartHouseStorageMemory {
     }
 
     async fn remove_room(&self, room: &str) -> Result<(), SmartHouseError> {
-        if !self.devices.contains_key(room) {
-            return Err(SmartHouseError::RoomNotFoundError(room.to_string()));
-        }
-
-        self.devices.remove(room);
+        match self.devices.contains_key(room) {
+            true => self.devices.remove(room),
+            false => return Err(SmartHouseError::RoomNotFoundError(room.to_string())),
+        };
 
         Ok(())
+    }
+
+    async fn devices(&self, room: &str) -> Result<Vec<String>, SmartHouseError> {
+        match self.devices.get(room) {
+            Some(devices) => Ok(devices.iter().map(|s| s.to_string()).collect()),
+            None => Err(SmartHouseError::RoomNotFoundError(room.to_string())),
+        }
     }
 }
 
@@ -88,6 +97,10 @@ impl SmartHouseStorage for SmartHouseStorageMongoDB {
     }
 
     async fn remove_room(&self, _room: &str) -> Result<(), SmartHouseError> {
+        todo!()
+    }
+
+    async fn devices(&self, _room: &str) -> Result<Vec<String>, SmartHouseError> {
         todo!()
     }
 }

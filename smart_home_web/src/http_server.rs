@@ -44,7 +44,7 @@ impl HTTPServer {
                 .service(get_rooms)
                 .service(post_room)
                 .service(delete_room)
-            // .service(get_room_devices)
+                .service(get_room_devices)
             // .service(get_device)
             // .service(post_device)
             // .service(delete_device)
