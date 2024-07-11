@@ -63,7 +63,7 @@ async fn get_rooms(app_data: web::Data<Mutex<AppData>>) -> impl Responder {
 #[utoipa::path(
     tag = "rooms",
     responses(
-        (status = 201, description = OK),
+        (status = 201, description = OK, body = Response),
         (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
     )
 )]
@@ -77,14 +77,17 @@ async fn post_room(path: web::Path<String>, app_data: web::Data<Mutex<AppData>>)
         });
     }
 
-    HttpResponse::Created().into()
+    HttpResponse::Created().json(Response {
+        status: OK,
+        message: format!("Комната '{}' добавлена", path),
+    })
 }
 
 /// Удалить комнату
 #[utoipa::path(
     tag = "rooms",
     responses(
-        (status = 200, description = OK),
+        (status = 200, description = OK, body = Response),
         (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
     )
 )]
@@ -101,7 +104,10 @@ async fn delete_room(
         });
     }
 
-    HttpResponse::Ok().into()
+    HttpResponse::Ok().json(Response {
+        status: OK,
+        message: format!("Комната '{}' удалена", path),
+    })
 }
 
 /// Список всех устройств в комнате
@@ -153,14 +159,20 @@ async fn post_device(
         });
     }
 
-    HttpResponse::Created().into()
+    HttpResponse::Created().json(Response {
+        status: OK,
+        message: format!(
+            "Устройство '{}' добавлено в комнату '{}'",
+            device_name, room_name
+        ),
+    })
 }
 
 /// Удалить устройство из комнаты
 #[utoipa::path(
     tag = "devices",
     responses(
-        (status = 200, description = OK),
+        (status = 200, description = OK, body = Response),
         (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
     )
 )]
@@ -178,7 +190,13 @@ async fn delete_device(
         });
     }
 
-    HttpResponse::Ok().into()
+    HttpResponse::Ok().json(Response {
+        status: OK,
+        message: format!(
+            "Устройство '{}' удалено из комнаты '{}'",
+            device_name, room_name
+        ),
+    })
 }
 
 /// Статус устройства
