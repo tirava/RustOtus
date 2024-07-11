@@ -137,9 +137,9 @@ impl SmartHouse {
 pub enum SmartHouseError {
     #[error("комнаты не найдены")]
     RoomsNotFoundError,
-    #[error("комната не найдена: {0}")]
+    #[error("комната '{0}' не найдена")]
     RoomNotFoundError(String),
-    #[error("комната уже существует: {0}")]
+    #[error("комната '{0}' уже существует")]
     RoomAlreadyExistsError(String),
     #[error("устройства не найдены")]
     DevicesNotFoundError,

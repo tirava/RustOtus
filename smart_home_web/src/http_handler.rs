@@ -1,5 +1,6 @@
-use crate::prelude::AppData;
-use actix_web::{delete, get, post, web, HttpResponse, Responder};
+use crate::prelude::{AppData, SmartHouseError};
+use actix_web::http::StatusCode;
+use actix_web::{delete, get, post, web, HttpResponse, Responder, ResponseError};
 use parking_lot::Mutex;
 use serde::Serialize;
 use utoipa::{OpenApi, ToSchema};
@@ -12,9 +13,11 @@ pub mod prelude {
     };
 }
 
-const ERROR: &str = "ошибка";
 const ROOM_NOT_FOUND: &str = "комната не найдена";
+const ROOM_OR_DEVICE_NOT_FOUND: &str = "комната или устройство не найдены";
 const OK: &str = "OK";
+const CONFLICT_ROOM_EXISTS: &str = "комната уже существует";
+const CONFLICT_DEVICE_EXISTS: &str = "устройство уже существует";
 const INTERNAL_SERVER_ERROR: &str = "внутренняя ошибка сервера";
 
 #[derive(OpenApi)]
@@ -49,65 +52,55 @@ struct Response {
     tag = "rooms",
     responses(
         (status = 200, description = OK, body = [&str]),
-        (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
+        (status = 500, description = INTERNAL_SERVER_ERROR),
     )
 )]
 #[get("/rooms")]
-async fn get_rooms(app_data: web::Data<Mutex<AppData>>) -> impl Responder {
+async fn get_rooms(app_data: web::Data<Mutex<AppData>>) -> Result<impl Responder, SmartHouseError> {
     let app_data = app_data.lock();
+    let rooms = app_data.rooms().await?;
 
-    HttpResponse::Ok().json(app_data.rooms())
+    Ok(HttpResponse::Ok().json(rooms))
 }
 
 /// Добавить комнату
 #[utoipa::path(
     tag = "rooms",
     responses(
-        (status = 201, description = OK, body = Response),
-        (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
+        (status = 201, description = OK),
+        (status = 409, description = CONFLICT_ROOM_EXISTS),
+        (status = 500, description = INTERNAL_SERVER_ERROR),
     )
 )]
 #[post("/room/{room_name}")]
-async fn post_room(path: web::Path<String>, app_data: web::Data<Mutex<AppData>>) -> impl Responder {
+async fn post_room(
+    path: web::Path<String>,
+    app_data: web::Data<Mutex<AppData>>,
+) -> Result<impl Responder, SmartHouseError> {
     let mut app_data = app_data.lock();
-    if let Err(err) = app_data.add_room(path.as_str()) {
-        return HttpResponse::InternalServerError().json(Response {
-            status: ERROR,
-            message: err.to_string(),
-        });
-    }
+    app_data.add_room(&path).await?;
 
-    HttpResponse::Created().json(Response {
-        status: OK,
-        message: format!("Комната '{}' добавлена", path),
-    })
+    Ok(HttpResponse::Created())
 }
 
 /// Удалить комнату
 #[utoipa::path(
     tag = "rooms",
     responses(
-        (status = 200, description = OK, body = Response),
-        (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
+        (status = 200, description = OK),
+        (status = 404, description = ROOM_NOT_FOUND),
+        (status = 500, description = INTERNAL_SERVER_ERROR),
     )
 )]
 #[delete("/room/{room_name}")]
 async fn delete_room(
     path: web::Path<String>,
     app_data: web::Data<Mutex<AppData>>,
-) -> impl Responder {
+) -> Result<impl Responder, SmartHouseError> {
     let mut app_data = app_data.lock();
-    if let Err(err) = app_data.remove_room(path.as_str()) {
-        return HttpResponse::InternalServerError().json(Response {
-            status: ERROR,
-            message: err.to_string(),
-        });
-    }
+    app_data.remove_room(&path).await?;
 
-    HttpResponse::Ok().json(Response {
-        status: OK,
-        message: format!("Комната '{}' удалена", path),
-    })
+    Ok(HttpResponse::Ok())
 }
 
 /// Список всех устройств в комнате
@@ -115,57 +108,41 @@ async fn delete_room(
     tag = "devices",
     responses(
         (status = 200, description = OK, body = [&str]),
-        (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
+        (status = 404, description = ROOM_NOT_FOUND),
+        (status = 500, description = INTERNAL_SERVER_ERROR),
     )
 )]
 #[get("/devices/{room_name}")]
 async fn get_room_devices(
     path: web::Path<String>,
     app_data: web::Data<Mutex<AppData>>,
-) -> impl Responder {
+) -> Result<impl Responder, SmartHouseError> {
     let app_data = app_data.lock();
-    let devices = match app_data.devices(path.as_str()) {
-        Some(devices) => devices,
-        None => {
-            return HttpResponse::InternalServerError().json(Response {
-                status: ERROR,
-                message: format!("{}: {}", ROOM_NOT_FOUND, path),
-            })
-        }
-    };
+    let devices = app_data.devices(&path).await?;
 
-    HttpResponse::Ok().json(devices)
+    Ok(HttpResponse::Ok().json(devices))
 }
 
 /// Добавить устройство в комнату
 #[utoipa::path(
     tag = "devices",
     responses(
-        (status = 201, description = OK, body = Response),
-        (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
+        (status = 201, description = OK),
+        (status = 404, description = ROOM_NOT_FOUND),
+        (status = 409, description = CONFLICT_DEVICE_EXISTS),
+        (status = 500, description = INTERNAL_SERVER_ERROR),
     )
 )]
 #[post("/device/{device_name}/room/{room_name}")]
 async fn post_device(
     path: web::Path<(String, String)>,
     app_data: web::Data<Mutex<AppData>>,
-) -> impl Responder {
+) -> Result<impl Responder, SmartHouseError> {
     let mut app_data = app_data.lock();
     let (room_name, device_name) = path.into_inner();
-    if let Err(err) = app_data.add_device(device_name.as_str(), room_name.as_str()) {
-        return HttpResponse::InternalServerError().json(Response {
-            status: ERROR,
-            message: err.to_string(),
-        });
-    }
+    app_data.add_device(&device_name, &room_name).await?;
 
-    HttpResponse::Created().json(Response {
-        status: OK,
-        message: format!(
-            "Устройство '{}' добавлено в комнату '{}'",
-            device_name, room_name
-        ),
-    })
+    Ok(HttpResponse::Created())
 }
 
 /// Удалить устройство из комнаты
@@ -173,6 +150,7 @@ async fn post_device(
     tag = "devices",
     responses(
         (status = 200, description = OK, body = Response),
+        (status = 404, description = ROOM_OR_DEVICE_NOT_FOUND),
         (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
     )
 )]
@@ -180,23 +158,12 @@ async fn post_device(
 async fn delete_device(
     path: web::Path<(String, String)>,
     app_data: web::Data<Mutex<AppData>>,
-) -> impl Responder {
+) -> Result<impl Responder, SmartHouseError> {
     let mut app_data = app_data.lock();
     let (room_name, device_name) = path.into_inner();
-    if let Err(err) = app_data.remove_device(device_name.as_str(), room_name.as_str()) {
-        return HttpResponse::InternalServerError().json(Response {
-            status: ERROR,
-            message: err.to_string(),
-        });
-    }
+    app_data.remove_device(&device_name, &room_name).await?;
 
-    HttpResponse::Ok().json(Response {
-        status: OK,
-        message: format!(
-            "Устройство '{}' удалено из комнаты '{}'",
-            device_name, room_name
-        ),
-    })
+    Ok(HttpResponse::Ok())
 }
 
 /// Статус устройства
@@ -225,4 +192,19 @@ async fn get_device() -> impl Responder {
 async fn get_house_report() -> impl Responder {
     // todo
     HttpResponse::Ok()
+}
+
+impl ResponseError for SmartHouseError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::RoomsNotFoundError => StatusCode::NOT_FOUND,
+            Self::RoomNotFoundError(_) => StatusCode::NOT_FOUND,
+            Self::RoomAlreadyExistsError(_) => StatusCode::CONFLICT,
+            Self::DevicesNotFoundError => StatusCode::NOT_FOUND,
+            Self::DeviceNotFoundError(_, _) => StatusCode::NOT_FOUND,
+            Self::DeviceAlreadyExistsError(_, _) => StatusCode::CONFLICT,
+            Self::IoError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::ParseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
 }
