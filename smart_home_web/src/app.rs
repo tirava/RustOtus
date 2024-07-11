@@ -1,4 +1,6 @@
+use crate::http_handler::prelude::*;
 use crate::prelude::{SmartHouse, SmartHouseError};
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct AppData {
@@ -17,9 +19,7 @@ impl AppData {
     pub async fn devices(&self, room: &str) -> Result<Vec<&str>, SmartHouseError> {
         match self.house.devices(room) {
             Some(devices) => Ok(devices),
-            None => {
-                return Err(SmartHouseError::RoomNotFoundError(room.to_string()));
-            }
+            None => Err(SmartHouseError::RoomNotFoundError(room.to_string())),
         }
     }
 
@@ -37,5 +37,26 @@ impl AppData {
 
     pub async fn remove_device(&mut self, room: &str, device: &str) -> Result<(), SmartHouseError> {
         self.house.remove_device(room, device)
+    }
+
+    pub async fn device_info(
+        &self,
+        room: &str,
+        device: &str,
+    ) -> Result<SmartDeviceInfo, SmartHouseError> {
+        Ok(SmartDeviceInfo {
+            name: format!("{} - {}", room, device),
+            status: "Vkl".to_string(),
+            power: 111.222,
+            temp: 333.444,
+        })
+    }
+
+    pub async fn house_report(&self) -> Result<SmartHouseReport, SmartHouseError> {
+        Ok(SmartHouseReport {
+            name: "qqq".to_string(),
+            address: "www".to_string(),
+            devices: HashMap::new(),
+        })
     }
 }

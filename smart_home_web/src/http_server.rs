@@ -1,5 +1,5 @@
+use crate::app::AppData;
 use crate::http_handler::prelude::*;
-use crate::prelude::AppData;
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use log::info;
