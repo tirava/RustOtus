@@ -7,21 +7,23 @@ use utoipa::{OpenApi, ToSchema};
 
 pub mod prelude {
     pub use crate::http_handler::{
+        delete_device,
         delete_room,
         get_room_devices,
         get_rooms,
-        // delete_device, get_device, get_house_report, post_device,
+        post_device,
         post_room,
+        // get_device, get_house_report,
     };
     pub use crate::http_handler::{ApiDoc, SmartDeviceInfo, SmartHouseReport};
 }
 
 const ROOM_NOT_FOUND: &str = "комната не найдена";
 // const DEVICE_NOT_FOUND: &str = "устройство не найдено";
-// const ROOM_OR_DEVICE_NOT_FOUND: &str = "комната или устройство не найдены";
+const ROOM_OR_DEVICE_NOT_FOUND: &str = "комната или устройство не найдены";
 const OK: &str = "OK";
 const CONFLICT_ROOM_EXISTS: &str = "комната уже существует";
-// const CONFLICT_DEVICE_EXISTS: &str = "устройство уже существует";
+const CONFLICT_DEVICE_EXISTS: &str = "устройство уже существует";
 const INTERNAL_SERVER_ERROR: &str = "внутренняя ошибка сервера";
 
 #[derive(OpenApi)]
@@ -31,9 +33,9 @@ const INTERNAL_SERVER_ERROR: &str = "внутренняя ошибка серв�
         post_room,
         delete_room,
         get_room_devices,
+        post_device,
+        delete_device,
         // get_device,
-        // post_device,
-        // delete_device,
         // get_house_report
     ),
     components(
@@ -128,49 +130,47 @@ async fn get_room_devices(
     Ok(HttpResponse::Ok().json(app_data.devices(&path).await?))
 }
 
-// /// Добавить устройство в комнату
-// #[utoipa::path(
-//     tag = "devices",
-//     responses(
-//         (status = 201, description = OK),
-//         (status = 404, description = ROOM_NOT_FOUND),
-//         (status = 409, description = CONFLICT_DEVICE_EXISTS),
-//         (status = 500, description = INTERNAL_SERVER_ERROR),
-//     )
-// )]
-// #[post("/device/{device_name}/room/{room_name}")]
-// async fn post_device(
-//     path: web::Path<(String, String)>,
-//     app_data: web::Data<Mutex<AppData>>,
-// ) -> Result<impl Responder, SmartHouseError> {
-//     let mut app_data = app_data.lock();
-//     let (room_name, device_name) = path.into_inner();
-//     app_data.add_device(&device_name, &room_name).await?;
-//
-//     Ok(HttpResponse::Created())
-// }
-//
-// /// Удалить устройство из комнаты
-// #[utoipa::path(
-//     tag = "devices",
-//     responses(
-//         (status = 200, description = OK, body = Response),
-//         (status = 404, description = ROOM_OR_DEVICE_NOT_FOUND),
-//         (status = 500, description = INTERNAL_SERVER_ERROR, body = Response),
-//     )
-// )]
-// #[delete("/device/{device_name}/room/{room_name}")]
-// async fn delete_device(
-//     path: web::Path<(String, String)>,
-//     app_data: web::Data<Mutex<AppData>>,
-// ) -> Result<impl Responder, SmartHouseError> {
-//     let mut app_data = app_data.lock();
-//     let (room_name, device_name) = path.into_inner();
-//     app_data.remove_device(&device_name, &room_name).await?;
-//
-//     Ok(HttpResponse::Ok())
-// }
-//
+/// Добавить устройство в комнату
+#[utoipa::path(
+    tag = "devices",
+    responses(
+        (status = 201, description = OK),
+        (status = 404, description = ROOM_NOT_FOUND),
+        (status = 409, description = CONFLICT_DEVICE_EXISTS),
+        (status = 500, description = INTERNAL_SERVER_ERROR),
+    )
+)]
+#[post("/device/{device_name}/room/{room_name}")]
+async fn post_device(
+    path: web::Path<(String, String)>,
+    app_data: web::Data<AppData>,
+) -> Result<impl Responder, SmartHouseError> {
+    let (room_name, device_name) = path.into_inner();
+    app_data.add_device(&device_name, &room_name).await?;
+
+    Ok(HttpResponse::Created())
+}
+
+/// Удалить устройство из комнаты
+#[utoipa::path(
+    tag = "devices",
+    responses(
+        (status = 200, description = OK),
+        (status = 404, description = ROOM_OR_DEVICE_NOT_FOUND),
+        (status = 500, description = INTERNAL_SERVER_ERROR),
+    )
+)]
+#[delete("/device/{device_name}/room/{room_name}")]
+async fn delete_device(
+    path: web::Path<(String, String)>,
+    app_data: web::Data<AppData>,
+) -> Result<impl Responder, SmartHouseError> {
+    let (room_name, device_name) = path.into_inner();
+    app_data.remove_device(&device_name, &room_name).await?;
+
+    Ok(HttpResponse::Ok())
+}
+
 // /// Статус устройства
 // #[utoipa::path(
 //     tag = "devices",

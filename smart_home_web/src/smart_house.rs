@@ -143,9 +143,9 @@ pub enum SmartHouseError {
     RoomAlreadyExistsError(String),
     #[error("устройства не найдены")]
     DevicesNotFoundError,
-    #[error("устройство '{0}' не найдено в комнате '{1}' ")]
+    #[error("устройство '{1}' не найдено в комнате '{0}' ")]
     DeviceNotFoundError(String, String),
-    #[error("устройство '{0}' уже существует в комнате '{1}' ")]
+    #[error("устройство '{1}' уже существует в комнате '{0}' ")]
     DeviceAlreadyExistsError(String, String),
     #[error("ошибка ввода-вывода: {0}")]
     IoError(#[from] std::io::Error),

@@ -25,13 +25,13 @@ impl AppData {
         self.storage.devices(room).await
     }
 
-    // pub async fn add_device(&mut self, room: &str, device: &str) -> Result<(), SmartHouseError> {
-    //     self.house.add_device(room, device)
-    // }
-    //
-    // pub async fn remove_device(&mut self, room: &str, device: &str) -> Result<(), SmartHouseError> {
-    //     self.house.remove_device(room, device)
-    // }
+    pub async fn add_device(&self, room: &str, device: &str) -> Result<(), SmartHouseError> {
+        self.storage.add_device(room, device).await
+    }
+
+    pub async fn remove_device(&self, room: &str, device: &str) -> Result<(), SmartHouseError> {
+        self.storage.remove_device(room, device).await
+    }
 
     // pub async fn device_info(
     //     &self,

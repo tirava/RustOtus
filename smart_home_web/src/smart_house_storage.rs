@@ -17,6 +17,10 @@ pub trait SmartHouseStorage {
     async fn remove_room(&self, room: &str) -> Result<(), SmartHouseError>;
 
     async fn devices(&self, room: &str) -> Result<Vec<String>, SmartHouseError>;
+
+    async fn add_device(&self, room: &str, device: &str) -> Result<(), SmartHouseError>;
+
+    async fn remove_device(&self, room: &str, device: &str) -> Result<(), SmartHouseError>;
 }
 
 pub struct SmartHouseStorageMemory {
@@ -70,6 +74,52 @@ impl SmartHouseStorage for SmartHouseStorageMemory {
             None => Err(SmartHouseError::RoomNotFoundError(room.to_string())),
         }
     }
+
+    async fn add_device(&self, room: &str, device: &str) -> Result<(), SmartHouseError> {
+        let device_room = match self.devices.get_mut(room) {
+            Some(device_room) => device_room,
+            None => return Err(SmartHouseError::RoomNotFoundError(room.to_string())),
+        };
+
+        if !device_room.insert(device.to_string()) {
+            return Err(SmartHouseError::DeviceAlreadyExistsError(
+                room.to_string(),
+                device.to_string(),
+            ));
+        }
+
+        Ok(())
+    }
+
+    async fn remove_device(&self, room: &str, device: &str) -> Result<(), SmartHouseError> {
+        let device_room = match self.devices.get_mut(room) {
+            Some(device_room) => device_room,
+            None => return Err(SmartHouseError::RoomNotFoundError(room.to_string())),
+        };
+
+        if device_room.remove(device).is_none() {
+            return Err(SmartHouseError::DeviceNotFoundError(
+                room.to_string(),
+                device.to_string(),
+            ));
+        }
+
+        // match device_room.remove(device) {
+        //     true => Ok(()),
+        //     false => Err(SmartHouseError::DeviceNotFoundError(
+        //         room.to_string(),
+        //         device.to_string(),
+        //     )),
+        // }
+        // if !device_room.remove(device) {
+        //     return Err(SmartHouseError::DeviceNotFoundError(
+        //         room.to_string(),
+        //         device.to_string(),
+        //     ));
+        // }
+
+        Ok(())
+    }
 }
 
 pub struct SmartHouseStorageMongoDB {
@@ -101,6 +151,14 @@ impl SmartHouseStorage for SmartHouseStorageMongoDB {
     }
 
     async fn devices(&self, _room: &str) -> Result<Vec<String>, SmartHouseError> {
+        todo!()
+    }
+
+    async fn add_device(&self, _room: &str, _device: &str) -> Result<(), SmartHouseError> {
+        todo!()
+    }
+
+    async fn remove_device(&self, _room: &str, _device: &str) -> Result<(), SmartHouseError> {
         todo!()
     }
 }
