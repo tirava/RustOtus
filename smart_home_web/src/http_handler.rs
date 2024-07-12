@@ -49,6 +49,17 @@ pub struct SmartDeviceInfo {
     pub(crate) temp: f32,
 }
 
+impl SmartDeviceInfo {
+    pub fn new(name: String, status: String, power: f32, temp: f32) -> Self {
+        Self {
+            name,
+            status,
+            power,
+            temp,
+        }
+    }
+}
+
 #[derive(Serialize, ToSchema)]
 pub struct SmartHouseReport<'a> {
     pub(crate) name: String,
