@@ -1,4 +1,4 @@
-use crate::prelude::SmartHouseError;
+use crate::prelude::{SmartDeviceInfo, SmartHouseError};
 use async_trait::async_trait;
 use dashmap::{DashMap, DashSet};
 
@@ -104,20 +104,6 @@ impl SmartHouseStorage for SmartHouseStorageMemory {
             ));
         }
 
-        // match device_room.remove(device) {
-        //     true => Ok(()),
-        //     false => Err(SmartHouseError::DeviceNotFoundError(
-        //         room.to_string(),
-        //         device.to_string(),
-        //     )),
-        // }
-        // if !device_room.remove(device) {
-        //     return Err(SmartHouseError::DeviceNotFoundError(
-        //         room.to_string(),
-        //         device.to_string(),
-        //     ));
-        // }
-
         Ok(())
     }
 }
@@ -162,3 +148,53 @@ impl SmartHouseStorage for SmartHouseStorageMongoDB {
         todo!()
     }
 }
+
+#[async_trait]
+pub trait MockDeviceInfoProvider: SmartHouseStorage {
+    async fn init(&self) -> Result<(), SmartHouseError>;
+
+    async fn device_info(
+        &self,
+        room: &str,
+        device: &str,
+    ) -> Result<SmartDeviceInfo, SmartHouseError>;
+}
+
+#[async_trait]
+impl MockDeviceInfoProvider for SmartHouseStorageMemory {
+    async fn init(&self) -> Result<(), SmartHouseError> {
+        todo!()
+    }
+
+    async fn device_info(
+        &self,
+        _room: &str,
+        _device: &str,
+    ) -> Result<SmartDeviceInfo, SmartHouseError> {
+        todo!()
+    }
+}
+
+#[async_trait]
+impl MockDeviceInfoProvider for SmartHouseStorageMongoDB {
+    async fn init(&self) -> Result<(), SmartHouseError> {
+        todo!()
+    }
+
+    async fn device_info(
+        &self,
+        _room: &str,
+        _device: &str,
+    ) -> Result<SmartDeviceInfo, SmartHouseError> {
+        todo!()
+    }
+}
+
+#[async_trait]
+pub trait SmartHouseDeviceStorage: SmartHouseStorage + MockDeviceInfoProvider {}
+
+#[async_trait]
+impl SmartHouseDeviceStorage for SmartHouseStorageMemory {}
+
+#[async_trait]
+impl SmartHouseDeviceStorage for SmartHouseStorageMongoDB {}

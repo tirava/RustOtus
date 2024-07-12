@@ -1,11 +1,12 @@
-use crate::prelude::{SmartDeviceInfo, SmartHouseError, SmartHouseReport, SmartHouseStorage};
+use crate::prelude::{SmartDeviceInfo, SmartHouseError, SmartHouseReport};
+use crate::smart_house_storage::SmartHouseDeviceStorage;
 
 pub struct AppData {
-    pub storage: Box<dyn SmartHouseStorage + Send + Sync>,
+    pub storage: Box<dyn SmartHouseDeviceStorage + Send + Sync>,
 }
 
 impl AppData {
-    pub fn new(storage: Box<dyn SmartHouseStorage + Send + Sync>) -> Self {
+    pub fn new(storage: Box<dyn SmartHouseDeviceStorage + Send + Sync>) -> Self {
         Self { storage }
     }
 

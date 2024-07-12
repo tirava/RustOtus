@@ -14,6 +14,8 @@ async fn main() -> Result<(), SmartHouseError> {
         Err(_) => AppData::new(Box::new(SmartHouseStorageMemory::new())),
     };
 
+    // app_data.storage.init().await?;
+
     HTTPServer::new(bind_address, log_level, workers, app_data)
         .start()
         .await?;
