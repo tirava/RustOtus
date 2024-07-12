@@ -1,4 +1,4 @@
-use crate::prelude::{SmartHouseError, SmartHouseStorage};
+use crate::prelude::{SmartDeviceInfo, SmartHouseError, SmartHouseReport, SmartHouseStorage};
 
 pub struct AppData {
     pub storage: Box<dyn SmartHouseStorage + Send + Sync>,
@@ -33,24 +33,24 @@ impl AppData {
         self.storage.remove_device(room, device).await
     }
 
-    // pub async fn device_info(
-    //     &self,
-    //     room: &str,
-    //     device: &str,
-    // ) -> Result<SmartDeviceInfo, SmartHouseError> {
-    //     Ok(SmartDeviceInfo {
-    //         name: format!("{} - {}", room, device),
-    //         status: "Vkl".to_string(),
-    //         power: 111.222,
-    //         temp: 333.444,
-    //     })
-    // }
-    //
-    // pub async fn house_report(&self) -> Result<SmartHouseReport, SmartHouseError> {
-    //     Ok(SmartHouseReport {
-    //         name: "qqq".to_string(),
-    //         address: "www".to_string(),
-    //         devices: HashMap::new(),
-    //     })
-    // }
+    pub async fn device_info(
+        &self,
+        room: &str,
+        device: &str,
+    ) -> Result<SmartDeviceInfo, SmartHouseError> {
+        Ok(SmartDeviceInfo {
+            name: format!("{} - {}", room, device),
+            status: "Vkl".to_string(),
+            power: 111.222,
+            temp: 333.444,
+        })
+    }
+
+    pub async fn house_report(&self) -> Result<SmartHouseReport, SmartHouseError> {
+        Ok(SmartHouseReport {
+            name: "qqq".to_string(),
+            address: "www".to_string(),
+            devices: Vec::new(),
+        })
+    }
 }

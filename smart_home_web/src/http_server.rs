@@ -1,5 +1,5 @@
-use crate::app::AppData;
 use crate::http_handler::prelude::*;
+use crate::prelude::AppData;
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use log::info;
@@ -47,8 +47,8 @@ impl HTTPServer {
                 .service(get_room_devices)
                 .service(post_device)
                 .service(delete_device)
-            // .service(get_device)
-            // .service(get_house_report)
+                .service(get_device)
+                .service(get_house_report)
         })
         .workers(self.workers)
         .bind(&self.bind_address)?
