@@ -1,13 +1,17 @@
-use dashmap::DashMap;
+use rand::Rng;
 use smart_home_web::prelude::*;
+use std::collections::HashMap;
 use std::env;
 
 const KITCHEN: &str = "Кухня";
 const LIVING_ROOM: &str = "Гостиная";
 const BEDROOM: &str = "Спальня";
-const SOCKET: &str = "Розетка";
-const THERMOMETER: &str = "Термометр";
-const SWITCH: &str = "Выключатель";
+const THERMOMETER_1: &str = "Термометр-1";
+const THERMOMETER_2: &str = "Термометр-2";
+const SOCKET_1: &str = "Розетка-1";
+const SOCKET_2: &str = "Розетка-2";
+const SWITCH_1: &str = "Выключатель-1";
+const SWITCH_2: &str = "Выключатель-2";
 
 #[actix_web::main]
 async fn main() -> Result<(), SmartHouseError> {
@@ -40,37 +44,105 @@ async fn main() -> Result<(), SmartHouseError> {
     Ok(())
 }
 
-fn generate_mock_devices() -> DashMap<String, DashMap<String, SmartDeviceInfo>> {
-    let devices_info: DashMap<String, DashMap<String, SmartDeviceInfo>> = DashMap::new();
-
-    devices_info.insert(KITCHEN.to_string(), DashMap::new());
-    devices_info.insert(LIVING_ROOM.to_string(), DashMap::new());
-    devices_info.insert(BEDROOM.to_string(), DashMap::new());
-
-    devices_info.get_mut(KITCHEN).unwrap().insert(
-        SOCKET.to_string(),
-        SmartDeviceInfo::new(
-            SOCKET.to_string(),
-            DeviceStatus::On.to_string(),
-            111.222,
-            0.0,
+fn generate_mock_devices() -> HashMap<&'static str, HashMap<&'static str, SmartDeviceInfo>> {
+    let devices_info = HashMap::from([
+        (
+            KITCHEN,
+            HashMap::from([
+                (
+                    SOCKET_1,
+                    SmartDeviceInfo::new(
+                        SOCKET_1.to_string(),
+                        DeviceStatus::On.to_string(),
+                        rand::thread_rng().gen_range(10.0..3000.0),
+                        0.0,
+                    ),
+                ),
+                (
+                    SOCKET_2,
+                    SmartDeviceInfo::new(
+                        SOCKET_2.to_string(),
+                        DeviceStatus::Off.to_string(),
+                        0.0,
+                        0.0,
+                    ),
+                ),
+                (
+                    SWITCH_1,
+                    SmartDeviceInfo::new(
+                        SWITCH_1.to_string(),
+                        DeviceStatus::On.to_string(),
+                        0.0,
+                        0.0,
+                    ),
+                ),
+            ]),
         ),
-    );
-
-    devices_info.get_mut(LIVING_ROOM).unwrap().insert(
-        THERMOMETER.to_string(),
-        SmartDeviceInfo::new(
-            THERMOMETER.to_string(),
-            DeviceStatus::Unknown.to_string(),
-            0.0,
-            11.22,
+        (
+            LIVING_ROOM,
+            HashMap::from([
+                (
+                    THERMOMETER_1,
+                    SmartDeviceInfo::new(
+                        THERMOMETER_1.to_string(),
+                        DeviceStatus::Unknown.to_string(),
+                        0.0,
+                        rand::thread_rng().gen_range(20.0..25.0),
+                    ),
+                ),
+                (
+                    SOCKET_1,
+                    SmartDeviceInfo::new(
+                        SOCKET_1.to_string(),
+                        DeviceStatus::On.to_string(),
+                        rand::thread_rng().gen_range(100.0..300.0),
+                        0.0,
+                    ),
+                ),
+                (
+                    SWITCH_2,
+                    SmartDeviceInfo::new(
+                        SWITCH_2.to_string(),
+                        DeviceStatus::Off.to_string(),
+                        0.0,
+                        0.0,
+                    ),
+                ),
+            ]),
         ),
-    );
-
-    devices_info.get_mut(BEDROOM).unwrap().insert(
-        SWITCH.to_string(),
-        SmartDeviceInfo::new(SWITCH.to_string(), DeviceStatus::Off.to_string(), 0.0, 0.0),
-    );
+        (
+            BEDROOM,
+            HashMap::from([
+                (
+                    THERMOMETER_2,
+                    SmartDeviceInfo::new(
+                        THERMOMETER_2.to_string(),
+                        DeviceStatus::Unknown.to_string(),
+                        0.0,
+                        rand::thread_rng().gen_range(18.0..20.0),
+                    ),
+                ),
+                (
+                    SWITCH_1,
+                    SmartDeviceInfo::new(
+                        SWITCH_1.to_string(),
+                        DeviceStatus::Off.to_string(),
+                        0.0,
+                        0.0,
+                    ),
+                ),
+                (
+                    SWITCH_2,
+                    SmartDeviceInfo::new(
+                        SWITCH_2.to_string(),
+                        DeviceStatus::On.to_string(),
+                        0.0,
+                        0.0,
+                    ),
+                ),
+            ]),
+        ),
+    ]);
 
     devices_info
 }

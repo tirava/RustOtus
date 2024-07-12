@@ -3,13 +3,14 @@ use crate::prelude::{
     SmartHouseStorageMongoDB,
 };
 use async_trait::async_trait;
-use dashmap::DashMap;
+use dashmap::{DashMap, DashSet};
+use std::collections::HashMap;
 
 #[async_trait]
 pub trait MockDeviceInfoProvider: SmartHouseStorage {
     async fn init(
         &mut self,
-        devices_info: DashMap<String, DashMap<String, SmartDeviceInfo>>,
+        devices_info: HashMap<&'static str, HashMap<&'static str, SmartDeviceInfo>>,
     ) -> Result<(), SmartHouseError>;
 
     async fn device_info(
@@ -23,9 +24,20 @@ pub trait MockDeviceInfoProvider: SmartHouseStorage {
 impl MockDeviceInfoProvider for SmartHouseStorageMemory {
     async fn init(
         &mut self,
-        devices_info: DashMap<String, DashMap<String, SmartDeviceInfo>>,
+        devices_info: HashMap<&'static str, HashMap<&'static str, SmartDeviceInfo>>,
     ) -> Result<(), SmartHouseError> {
         self.devices_info = devices_info;
+
+        self.devices = DashMap::new();
+        for (room, devices) in self.devices_info.iter() {
+            self.devices.insert(room.to_string(), DashSet::new());
+            for device in devices.keys() {
+                self.devices
+                    .get_mut(*room)
+                    .unwrap()
+                    .insert(device.to_string());
+            }
+        }
 
         Ok(())
     }
@@ -47,8 +59,8 @@ impl MockDeviceInfoProvider for SmartHouseStorageMemory {
             ));
         };
 
-        let room = match self.devices_info.get(room) {
-            Some(room) => room,
+        let room_device = match self.devices_info.get(room) {
+            Some(room_device) => room_device,
             None => {
                 return Err(SmartHouseError::DeviceInfoProviderError(
                     SmartHouseError::RoomNotFoundError(room.to_string()).to_string(),
@@ -56,20 +68,17 @@ impl MockDeviceInfoProvider for SmartHouseStorageMemory {
             }
         };
 
-        let device = match room.get(device) {
-            Some(device) => device,
+        let device_info = match room_device.get(device) {
+            Some(device_info) => device_info,
             None => {
                 return Err(SmartHouseError::DeviceInfoProviderError(
-                    SmartHouseError::DeviceNotFoundError(
-                        room.key().to_string(),
-                        device.to_string(),
-                    )
-                    .to_string(),
+                    SmartHouseError::DeviceNotFoundError(room.to_string(), device.to_string())
+                        .to_string(),
                 ))
             }
         };
 
-        Ok(device.clone())
+        Ok(device_info.clone())
     }
 }
 
@@ -77,7 +86,7 @@ impl MockDeviceInfoProvider for SmartHouseStorageMemory {
 impl MockDeviceInfoProvider for SmartHouseStorageMongoDB {
     async fn init(
         &mut self,
-        _devices_info: DashMap<String, DashMap<String, SmartDeviceInfo>>,
+        _devices_info: HashMap<&'static str, HashMap<&'static str, SmartDeviceInfo>>,
     ) -> Result<(), SmartHouseError> {
         todo!()
     }

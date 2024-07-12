@@ -2,17 +2,18 @@ use crate::http_handler::SmartDeviceInfo;
 use crate::prelude::{SmartHouseError, SmartHouseStorage};
 use async_trait::async_trait;
 use dashmap::{DashMap, DashSet};
+use std::collections::HashMap;
 
 pub struct SmartHouseStorageMemory {
     pub(crate) devices: DashMap<String, DashSet<String>>,
-    pub(crate) devices_info: DashMap<String, DashMap<String, SmartDeviceInfo>>,
+    pub(crate) devices_info: HashMap<&'static str, HashMap<&'static str, SmartDeviceInfo>>,
 }
 
 impl SmartHouseStorageMemory {
     pub fn new() -> Self {
         Self {
             devices: DashMap::new(),
-            devices_info: DashMap::new(),
+            devices_info: HashMap::new(),
         }
     }
 }
