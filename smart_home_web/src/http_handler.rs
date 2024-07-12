@@ -2,6 +2,7 @@ use crate::prelude::{AppData, SmartHouseError};
 use actix_web::http::StatusCode;
 use actix_web::{delete, get, post, web, HttpResponse, Responder, ResponseError};
 use serde::Serialize;
+use std::collections::HashMap;
 use utoipa::{OpenApi, ToSchema};
 
 pub mod prelude {
@@ -61,10 +62,10 @@ impl SmartDeviceInfo {
 }
 
 #[derive(Serialize, ToSchema)]
-pub struct SmartHouseReport<'a> {
+pub struct SmartHouseReport {
     pub(crate) name: String,
     pub(crate) address: String,
-    pub(crate) devices: Vec<&'a SmartDeviceInfo>,
+    pub(crate) devices: HashMap<String, Vec<SmartDeviceInfo>>,
 }
 
 /// Список всех комнат

@@ -1,13 +1,24 @@
 use crate::prelude::{SmartDeviceInfo, SmartHouseError, SmartHouseReport};
 use crate::smart_house_storage::SmartHouseDeviceStorage;
+use std::collections::HashMap;
 
 pub struct AppData {
+    name: String,
+    address: String,
     pub storage: Box<dyn SmartHouseDeviceStorage + Send + Sync>,
 }
 
 impl AppData {
-    pub fn new(storage: Box<dyn SmartHouseDeviceStorage + Send + Sync>) -> Self {
-        Self { storage }
+    pub fn new(
+        name: String,
+        address: String,
+        storage: Box<dyn SmartHouseDeviceStorage + Send + Sync>,
+    ) -> Self {
+        Self {
+            name,
+            address,
+            storage,
+        }
     }
 
     pub async fn rooms(&self) -> Result<Vec<String>, SmartHouseError> {
@@ -43,10 +54,23 @@ impl AppData {
     }
 
     pub async fn house_report(&self) -> Result<SmartHouseReport, SmartHouseError> {
-        Ok(SmartHouseReport {
-            name: "qqq".to_string(),
-            address: "www".to_string(),
-            devices: Vec::new(),
-        })
+        let rooms = self.rooms().await?;
+        let mut devices_info: HashMap<String, Vec<SmartDeviceInfo>> = HashMap::new();
+
+        for room in rooms {
+            let devices = self.devices(&room).await?;
+            for device in devices {
+                let info = self.device_info(&room, &device).await?;
+                devices_info.entry(room.clone()).or_default().push(info);
+            }
+        }
+
+        let report = SmartHouseReport {
+            name: self.name.clone(),
+            address: self.address.clone(),
+            devices: devices_info,
+        };
+
+        Ok(report)
     }
 }

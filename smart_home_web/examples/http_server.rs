@@ -15,11 +15,20 @@ async fn main() -> Result<(), SmartHouseError> {
     let bind_address = env::var("BIND_ADDRESS").unwrap_or("127.0.0.1:8000".to_string());
     let workers = env::var("WORKERS").unwrap_or(2.to_string()).parse()?;
 
+    let house_name = "Мой умный дом".to_string();
+    let house_address = "ул. Умных домов, д.1, кв.2".to_string();
+
     let mut app_data = match env::var("MONGO_URI") {
-        Ok(uri) => AppData::new(Box::new(
-            SmartHouseStorageMongoDB::new(uri).connect().await?,
-        )),
-        Err(_) => AppData::new(Box::new(SmartHouseStorageMemory::new())),
+        Ok(uri) => AppData::new(
+            house_name,
+            house_address,
+            Box::new(SmartHouseStorageMongoDB::new(uri).connect().await?),
+        ),
+        Err(_) => AppData::new(
+            house_name,
+            house_address,
+            Box::new(SmartHouseStorageMemory::new()),
+        ),
     };
 
     app_data.storage.init(generate_mock_devices()).await?;
