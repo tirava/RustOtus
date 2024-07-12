@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use dashmap::{DashMap, DashSet};
 
 pub struct SmartHouseStorageMemory {
-    devices: DashMap<String, DashSet<String>>,
+    pub(crate) devices: DashMap<String, DashSet<String>>,
     pub(crate) devices_info: DashMap<String, DashMap<String, SmartDeviceInfo>>,
 }
 

@@ -151,4 +151,6 @@ pub enum SmartHouseError {
     IoError(#[from] std::io::Error),
     #[error("ошибка парсинга: {0}")]
     ParseError(#[from] std::num::ParseIntError),
+    #[error("ошибка получения информации об устройстве: {0}")]
+    DeviceInfoProviderError(String),
 }

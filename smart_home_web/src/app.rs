@@ -39,12 +39,7 @@ impl AppData {
         room: &str,
         device: &str,
     ) -> Result<SmartDeviceInfo, SmartHouseError> {
-        Ok(SmartDeviceInfo {
-            name: format!("{} - {}", room, device),
-            status: "Vkl".to_string(),
-            power: 111.222,
-            temp: 333.444,
-        })
+        self.storage.device_info(room, device).await
     }
 
     pub async fn house_report(&self) -> Result<SmartHouseReport, SmartHouseError> {

@@ -41,7 +41,7 @@ const INTERNAL_SERVER_ERROR: &str = "внутренняя ошибка серв�
 )]
 pub struct ApiDoc;
 
-#[derive(Serialize, ToSchema)]
+#[derive(Clone, Serialize, ToSchema)]
 pub struct SmartDeviceInfo {
     pub(crate) name: String,
     pub(crate) status: String,
@@ -212,6 +212,7 @@ impl ResponseError for SmartHouseError {
             Self::DeviceAlreadyExistsError(_, _) => StatusCode::CONFLICT,
             Self::IoError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::ParseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::DeviceInfoProviderError(_) => StatusCode::NOT_FOUND,
         }
     }
 }

@@ -36,10 +36,44 @@ impl MockDeviceInfoProvider for SmartHouseStorageMemory {
 
     async fn device_info(
         &self,
-        _room: &str,
-        _device: &str,
+        room: &str,
+        device: &str,
     ) -> Result<SmartDeviceInfo, SmartHouseError> {
-        todo!()
+        if !match self.devices.get(room) {
+            Some(room) => room,
+            None => return Err(SmartHouseError::RoomNotFoundError(room.to_string())),
+        }
+        .contains(device)
+        {
+            return Err(SmartHouseError::DeviceNotFoundError(
+                room.to_string(),
+                device.to_string(),
+            ));
+        };
+
+        let room = match self.devices_info.get(room) {
+            Some(room) => room,
+            None => {
+                return Err(SmartHouseError::DeviceInfoProviderError(
+                    SmartHouseError::RoomNotFoundError(room.to_string()).to_string(),
+                ))
+            }
+        };
+
+        let device = match room.get(device) {
+            Some(device) => device,
+            None => {
+                return Err(SmartHouseError::DeviceInfoProviderError(
+                    SmartHouseError::DeviceNotFoundError(
+                        room.key().to_string(),
+                        device.to_string(),
+                    )
+                    .to_string(),
+                ))
+            }
+        };
+
+        Ok(device.clone())
     }
 }
 
