@@ -97,7 +97,6 @@ impl MockDeviceInfoProvider for SmartHouseStorageMongoDB {
         let rooms: Vec<CollectionRoom> = devices_info
             .keys()
             .map(|room| CollectionRoom {
-                id: None,
                 name: room.to_string(),
             })
             .collect();

@@ -1,6 +1,5 @@
 use crate::prelude::{SmartHouseError, SmartHouseStorage};
 use async_trait::async_trait;
-use mongodb::bson::oid::ObjectId;
 use mongodb::{Client, Collection};
 use serde::Serialize;
 
@@ -10,8 +9,6 @@ pub struct SmartHouseStorageMongoDB {
 
 #[derive(Serialize)]
 pub(crate) struct CollectionRoom {
-    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    pub(crate) id: Option<ObjectId>,
     pub(crate) name: String,
 }
 
