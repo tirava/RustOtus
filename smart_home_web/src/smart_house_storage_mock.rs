@@ -2,7 +2,7 @@ use crate::prelude::{
     DeviceStatus, SmartDeviceInfo, SmartHouseError, SmartHouseStorage, SmartHouseStorageMemory,
     SmartHouseStorageMongoDB,
 };
-use crate::smart_house_storage_mongodb::CollectionRoom;
+use crate::smart_house_storage_mongodb::{CollectionDevice, CollectionRoom};
 use async_trait::async_trait;
 use dashmap::{DashMap, DashSet};
 use mongodb::bson::doc;
@@ -90,7 +90,9 @@ impl MockDeviceInfoProvider for SmartHouseStorageMongoDB {
         &mut self,
         devices_info: HashMap<&'static str, HashMap<&'static str, SmartDeviceInfo>>,
     ) -> Result<(), SmartHouseError> {
-        if self.collection_rooms.count_documents(doc! {}).await? > 0 {
+        if self.collection_rooms.count_documents(doc! {}).await? > 0
+            || self.collection_devices.count_documents(doc! {}).await? > 0
+        {
             return Ok(());
         }
 
@@ -102,10 +104,18 @@ impl MockDeviceInfoProvider for SmartHouseStorageMongoDB {
             .collect();
         self.collection_rooms.insert_many(rooms).await?;
 
-        for (_room, devices) in devices_info.iter() {
-            // self.client.database(&self.db_name).collection(self.rooms_name);
-            for _device in devices.keys() {}
-        }
+        let devices: Vec<CollectionDevice> = devices_info
+            .iter()
+            .flat_map(|(room, devices)| {
+                devices
+                    .iter()
+                    .map(move |(_, device_info)| CollectionDevice {
+                        room_name: room.to_string(),
+                        device: device_info.clone(),
+                    })
+            })
+            .collect();
+        self.collection_devices.insert_many(devices).await?;
 
         Ok(())
     }

@@ -1,15 +1,22 @@
-use crate::prelude::{SmartHouseError, SmartHouseStorage};
+use crate::prelude::{SmartDeviceInfo, SmartHouseError, SmartHouseStorage};
 use async_trait::async_trait;
 use mongodb::{Client, Collection};
 use serde::Serialize;
 
 pub struct SmartHouseStorageMongoDB {
     pub(crate) collection_rooms: Collection<CollectionRoom>,
+    pub(crate) collection_devices: Collection<CollectionDevice>,
 }
 
 #[derive(Serialize)]
 pub(crate) struct CollectionRoom {
     pub(crate) name: String,
+}
+
+#[derive(Serialize)]
+pub(crate) struct CollectionDevice {
+    pub(crate) room_name: String,
+    pub(crate) device: SmartDeviceInfo,
 }
 
 impl SmartHouseStorageMongoDB {
@@ -24,9 +31,10 @@ impl SmartHouseStorageMongoDB {
             }
         };
 
-        let collection_rooms = db.collection("rooms");
-
-        Ok(Self { collection_rooms })
+        Ok(Self {
+            collection_rooms: db.collection("rooms"),
+            collection_devices: db.collection("devices"),
+        })
     }
 }
 
