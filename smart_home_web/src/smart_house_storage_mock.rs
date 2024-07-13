@@ -1,5 +1,5 @@
 use crate::prelude::{
-    SmartDeviceInfo, SmartHouseError, SmartHouseStorage, SmartHouseStorageMemory,
+    DeviceStatus, SmartDeviceInfo, SmartHouseError, SmartHouseStorage, SmartHouseStorageMemory,
     SmartHouseStorageMongoDB,
 };
 use async_trait::async_trait;
@@ -88,7 +88,14 @@ impl MockDeviceInfoProvider for SmartHouseStorageMongoDB {
         &mut self,
         _devices_info: HashMap<&'static str, HashMap<&'static str, SmartDeviceInfo>>,
     ) -> Result<(), SmartHouseError> {
-        todo!()
+        // for (room, devices) in devices_info.iter() {
+        //     self.client.database("smart_house").insert(room);
+        //     for _device in devices.keys() {
+        //
+        //     }
+        // }
+
+        Ok(())
     }
 
     async fn device_info(
@@ -96,6 +103,11 @@ impl MockDeviceInfoProvider for SmartHouseStorageMongoDB {
         _room: &str,
         _device: &str,
     ) -> Result<SmartDeviceInfo, SmartHouseError> {
-        todo!()
+        Ok(SmartDeviceInfo {
+            name: "111".to_string(),
+            status: DeviceStatus::On.to_string(),
+            power: 111.222,
+            temp: 333.444,
+        })
     }
 }

@@ -3,7 +3,7 @@ use crate::prelude::AppData;
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use log::info;
-use std::{env, io};
+use std::io;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -14,10 +14,7 @@ pub struct HTTPServer {
 }
 
 impl HTTPServer {
-    pub fn new(bind_address: String, log_level: String, workers: usize, app_data: AppData) -> Self {
-        env::set_var("RUST_LOG", log_level);
-        env_logger::init();
-
+    pub fn new(bind_address: String, workers: usize, app_data: AppData) -> Self {
         Self {
             bind_address,
             workers,

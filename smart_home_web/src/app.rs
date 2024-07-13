@@ -3,7 +3,7 @@ use crate::smart_house_storage::SmartHouseDeviceStorage;
 use std::collections::HashMap;
 
 pub struct AppData {
-    name: String,
+    pub name: String,
     address: String,
     pub storage: Box<dyn SmartHouseDeviceStorage + Send + Sync>,
 }

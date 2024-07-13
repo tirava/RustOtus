@@ -1,17 +1,17 @@
 use crate::prelude::{SmartHouseError, SmartHouseStorage};
 use async_trait::async_trait;
+use mongodb::Client;
 
 pub struct SmartHouseStorageMongoDB {
-    _uri: String,
+    pub(crate) client: Client,
+    db_name: String,
 }
 
 impl SmartHouseStorageMongoDB {
-    pub fn new(_uri: String) -> Self {
-        Self { _uri }
-    }
+    pub async fn new(uri: &str, db_name: String) -> Result<Self, SmartHouseError> {
+        let client = Client::with_uri_str(uri).await?;
 
-    pub async fn connect(self) -> Result<Self, SmartHouseError> {
-        Ok(self)
+        Ok(Self { client, db_name })
     }
 }
 

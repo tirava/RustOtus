@@ -153,4 +153,6 @@ pub enum SmartHouseError {
     ParseError(#[from] std::num::ParseIntError),
     #[error("ошибка получения информации об устройстве: {0}")]
     DeviceInfoProviderError(String),
+    #[error("ошибка MongoDB: {0}")]
+    MongoDBError(#[from] mongodb::error::Error),
 }

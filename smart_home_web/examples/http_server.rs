@@ -16,18 +16,25 @@ const SWITCH_2: &str = "Выключатель-2";
 #[actix_web::main]
 async fn main() -> Result<(), SmartHouseError> {
     let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
+    env::set_var("RUST_LOG", log_level);
+    env_logger::init();
+
     let bind_address = env::var("BIND_ADDRESS").unwrap_or("127.0.0.1:8000".to_string());
     let workers = env::var("WORKERS").unwrap_or(2.to_string()).parse()?;
 
     let house_name = "Мой умный дом".to_string();
     let house_address = "ул. Умных домов, д.1, кв.2".to_string();
 
+    // MONGO_URI=mongodb://user:password@localhost:27017
     let mut app_data = match env::var("MONGO_URI") {
-        Ok(uri) => AppData::new(
-            house_name,
-            house_address,
-            Box::new(SmartHouseStorageMongoDB::new(uri).connect().await?),
-        ),
+        Ok(uri) => {
+            let db_name = env::var("MONGO_DB_NAME").unwrap_or("smart_house".to_string());
+            AppData::new(
+                format!("{house_name} (MongoDB)"),
+                house_address,
+                Box::new(SmartHouseStorageMongoDB::new(&uri, db_name).await?),
+            )
+        }
         Err(_) => AppData::new(
             house_name,
             house_address,
@@ -37,7 +44,7 @@ async fn main() -> Result<(), SmartHouseError> {
 
     app_data.storage.init(generate_mock_devices()).await?;
 
-    HTTPServer::new(bind_address, log_level, workers, app_data)
+    HTTPServer::new(bind_address, workers, app_data)
         .start()
         .await?;
 
