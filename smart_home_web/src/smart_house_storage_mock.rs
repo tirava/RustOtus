@@ -2,8 +2,10 @@ use crate::prelude::{
     DeviceStatus, SmartDeviceInfo, SmartHouseError, SmartHouseStorage, SmartHouseStorageMemory,
     SmartHouseStorageMongoDB,
 };
+use crate::smart_house_storage_mongodb::CollectionRoom;
 use async_trait::async_trait;
 use dashmap::{DashMap, DashSet};
+use mongodb::bson::doc;
 use std::collections::HashMap;
 
 #[async_trait]
@@ -86,14 +88,25 @@ impl MockDeviceInfoProvider for SmartHouseStorageMemory {
 impl MockDeviceInfoProvider for SmartHouseStorageMongoDB {
     async fn init(
         &mut self,
-        _devices_info: HashMap<&'static str, HashMap<&'static str, SmartDeviceInfo>>,
+        devices_info: HashMap<&'static str, HashMap<&'static str, SmartDeviceInfo>>,
     ) -> Result<(), SmartHouseError> {
-        // for (room, devices) in devices_info.iter() {
-        //     self.client.database("smart_house").insert(room);
-        //     for _device in devices.keys() {
-        //
-        //     }
-        // }
+        if self.collection_rooms.count_documents(doc! {}).await? > 0 {
+            return Ok(());
+        }
+
+        let rooms: Vec<CollectionRoom> = devices_info
+            .keys()
+            .map(|room| CollectionRoom {
+                id: None,
+                name: room.to_string(),
+            })
+            .collect();
+        self.collection_rooms.insert_many(rooms).await?;
+
+        for (_room, devices) in devices_info.iter() {
+            // self.client.database(&self.db_name).collection(self.rooms_name);
+            for _device in devices.keys() {}
+        }
 
         Ok(())
     }

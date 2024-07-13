@@ -25,16 +25,13 @@ async fn main() -> Result<(), SmartHouseError> {
     let house_name = "Мой умный дом".to_string();
     let house_address = "ул. Умных домов, д.1, кв.2".to_string();
 
-    // MONGO_URI=mongodb://user:password@localhost:27017
-    let mut app_data = match env::var("MONGO_URI") {
-        Ok(uri) => {
-            let db_name = env::var("MONGO_DB_NAME").unwrap_or("smart_house".to_string());
-            AppData::new(
-                format!("{house_name} (MongoDB)"),
-                house_address,
-                Box::new(SmartHouseStorageMongoDB::new(&uri, db_name).await?),
-            )
-        }
+    // MONGO_URI=mongodb://user:password@localhost:27017/my_db
+    let mut app_data = match env::var("MONGO_DB_URI") {
+        Ok(uri) => AppData::new(
+            format!("{house_name} (MongoDB)"),
+            house_address,
+            Box::new(SmartHouseStorageMongoDB::new(&uri).await?),
+        ),
         Err(_) => AppData::new(
             house_name,
             house_address,

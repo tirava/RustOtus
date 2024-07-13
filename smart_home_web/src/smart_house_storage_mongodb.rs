@@ -1,17 +1,35 @@
 use crate::prelude::{SmartHouseError, SmartHouseStorage};
 use async_trait::async_trait;
-use mongodb::Client;
+use mongodb::bson::oid::ObjectId;
+use mongodb::{Client, Collection};
+use serde::Serialize;
 
 pub struct SmartHouseStorageMongoDB {
-    pub(crate) client: Client,
-    db_name: String,
+    pub(crate) collection_rooms: Collection<CollectionRoom>,
+}
+
+#[derive(Serialize)]
+pub(crate) struct CollectionRoom {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub(crate) id: Option<ObjectId>,
+    pub(crate) name: String,
 }
 
 impl SmartHouseStorageMongoDB {
-    pub async fn new(uri: &str, db_name: String) -> Result<Self, SmartHouseError> {
+    pub async fn new(uri: &str) -> Result<Self, SmartHouseError> {
         let client = Client::with_uri_str(uri).await?;
+        let db = match client.default_database() {
+            Some(db) => db,
+            None => {
+                return Err(SmartHouseError::OtherError(
+                    "no default database found in uri string".to_string(),
+                ))
+            }
+        };
 
-        Ok(Self { client, db_name })
+        let collection_rooms = db.collection("rooms");
+
+        Ok(Self { collection_rooms })
     }
 }
 
