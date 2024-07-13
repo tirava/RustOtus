@@ -1,7 +1,7 @@
 use crate::prelude::{AppData, SmartHouseError};
 use actix_web::http::StatusCode;
 use actix_web::{delete, get, post, web, HttpResponse, Responder, ResponseError};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use utoipa::{OpenApi, ToSchema};
 
@@ -42,7 +42,7 @@ const INTERNAL_SERVER_ERROR: &str = "внутренняя ошибка серв�
 )]
 pub struct ApiDoc;
 
-#[derive(Clone, Serialize, ToSchema)]
+#[derive(Clone, Serialize, Deserialize, ToSchema)]
 pub struct SmartDeviceInfo {
     pub(crate) name: String,
     pub(crate) status: String,

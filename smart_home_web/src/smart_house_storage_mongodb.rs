@@ -1,19 +1,21 @@
 use crate::prelude::{SmartDeviceInfo, SmartHouseError, SmartHouseStorage};
 use async_trait::async_trait;
+use futures::stream::TryStreamExt;
+use mongodb::bson::doc;
 use mongodb::{Client, Collection};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 pub struct SmartHouseStorageMongoDB {
     pub(crate) collection_rooms: Collection<CollectionRoom>,
     pub(crate) collection_devices: Collection<CollectionDevice>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub(crate) struct CollectionRoom {
     pub(crate) name: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub(crate) struct CollectionDevice {
     pub(crate) room_name: String,
     pub(crate) device: SmartDeviceInfo,
@@ -41,7 +43,16 @@ impl SmartHouseStorageMongoDB {
 #[async_trait]
 impl SmartHouseStorage for SmartHouseStorageMongoDB {
     async fn rooms(&self) -> Result<Vec<String>, SmartHouseError> {
-        todo!()
+        let cursor = self.collection_rooms.find(doc! {}).await?;
+
+        let rooms = cursor
+            .try_collect::<Vec<CollectionRoom>>()
+            .await?
+            .into_iter()
+            .map(|room| room.name)
+            .collect();
+
+        Ok(rooms)
     }
 
     async fn add_room(&self, _room: &str) -> Result<(), SmartHouseError> {
