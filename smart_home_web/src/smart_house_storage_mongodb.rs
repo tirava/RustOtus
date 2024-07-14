@@ -1,4 +1,4 @@
-use crate::prelude::{SmartDeviceInfo, SmartHouseError, SmartHouseStorage};
+use crate::prelude::{DeviceStatus, SmartDeviceInfo, SmartHouseError, SmartHouseStorage};
 use async_trait::async_trait;
 use futures::stream::TryStreamExt;
 use mongodb::bson::doc;
@@ -116,11 +116,69 @@ impl SmartHouseStorage for SmartHouseStorageMongoDB {
         Ok(devices)
     }
 
-    async fn add_device(&self, _room: &str, _device: &str) -> Result<(), SmartHouseError> {
-        todo!()
+    async fn add_device(&self, room: &str, device: &str) -> Result<(), SmartHouseError> {
+        if self
+            .collection_rooms
+            .count_documents(doc! {"name": room})
+            .await?
+            == 0
+        {
+            return Err(SmartHouseError::RoomNotFoundError(room.to_string()));
+        }
+
+        if self
+            .collection_devices
+            .count_documents(doc! {"room_name": room, "device.name": device})
+            .await?
+            > 0
+        {
+            return Err(SmartHouseError::DeviceAlreadyExistsError(
+                room.to_string(),
+                device.to_string(),
+            ));
+        }
+
+        self.collection_devices
+            .insert_one(CollectionDevice {
+                room_name: room.to_string(),
+                device: SmartDeviceInfo::new(
+                    device.to_string(),
+                    DeviceStatus::Off.to_string(),
+                    0.0,
+                    0.0,
+                ),
+            })
+            .await?;
+
+        Ok(())
     }
 
-    async fn remove_device(&self, _room: &str, _device: &str) -> Result<(), SmartHouseError> {
-        todo!()
+    async fn remove_device(&self, room: &str, device: &str) -> Result<(), SmartHouseError> {
+        if self
+            .collection_rooms
+            .count_documents(doc! {"name": room})
+            .await?
+            == 0
+        {
+            return Err(SmartHouseError::RoomNotFoundError(room.to_string()));
+        }
+
+        if self
+            .collection_devices
+            .count_documents(doc! {"room_name": room, "device.name": device})
+            .await?
+            == 0
+        {
+            return Err(SmartHouseError::DeviceNotFoundError(
+                room.to_string(),
+                device.to_string(),
+            ));
+        }
+
+        self.collection_devices
+            .delete_one(doc! {"room_name": room, "device.name": device})
+            .await?;
+
+        Ok(())
     }
 }
