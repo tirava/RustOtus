@@ -177,7 +177,7 @@ async fn delete_device(
     Ok(HttpResponse::Ok())
 }
 
-/// Статус устройства
+/// Статус устройства из источника информации
 #[utoipa::path(
     tag = "devices",
     responses(

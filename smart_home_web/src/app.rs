@@ -1,7 +1,8 @@
-use crate::prelude::{SmartDeviceInfo, SmartHouseError, SmartHouseReport};
+use crate::prelude::{DeviceStatus, SmartDeviceInfo, SmartHouseError, SmartHouseReport};
 use crate::smart_house_storage::SmartHouseDeviceStorage;
 use std::collections::HashMap;
 
+const DEVICE_NOT_FOUND_IN_PROVIDER: &str = " (устройство не найдено в источнике информации)";
 pub struct AppData {
     pub name: String,
     address: String,
@@ -50,7 +51,18 @@ impl AppData {
         room: &str,
         device: &str,
     ) -> Result<SmartDeviceInfo, SmartHouseError> {
-        self.storage.device_info(room, device).await
+        let info = self
+            .storage
+            .device_info(room, device)
+            .await
+            .unwrap_or_else(|_| SmartDeviceInfo {
+                name: device.to_string() + DEVICE_NOT_FOUND_IN_PROVIDER,
+                status: DeviceStatus::Unknown.to_string(),
+                power: 0.0,
+                temp: 0.0,
+            });
+
+        Ok(info)
     }
 
     pub async fn house_report(&self) -> Result<SmartHouseReport, SmartHouseError> {
