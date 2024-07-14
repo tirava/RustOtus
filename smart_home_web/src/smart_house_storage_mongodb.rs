@@ -55,12 +55,40 @@ impl SmartHouseStorage for SmartHouseStorageMongoDB {
         Ok(rooms)
     }
 
-    async fn add_room(&self, _room: &str) -> Result<(), SmartHouseError> {
-        todo!()
+    async fn add_room(&self, room: &str) -> Result<(), SmartHouseError> {
+        if self
+            .collection_rooms
+            .count_documents(doc! {"name": room})
+            .await?
+            > 0
+        {
+            return Err(SmartHouseError::RoomAlreadyExistsError(room.to_string()));
+        }
+
+        self.collection_rooms
+            .insert_one(CollectionRoom {
+                name: room.to_string(),
+            })
+            .await?;
+
+        Ok(())
     }
 
-    async fn remove_room(&self, _room: &str) -> Result<(), SmartHouseError> {
-        todo!()
+    async fn remove_room(&self, room: &str) -> Result<(), SmartHouseError> {
+        if self
+            .collection_rooms
+            .count_documents(doc! {"name": room})
+            .await?
+            == 0
+        {
+            return Err(SmartHouseError::RoomNotFoundError(room.to_string()));
+        }
+
+        self.collection_rooms
+            .delete_one(doc! {"name": room})
+            .await?;
+
+        Ok(())
     }
 
     async fn devices(&self, room: &str) -> Result<Vec<String>, SmartHouseError> {
