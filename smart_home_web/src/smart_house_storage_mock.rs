@@ -1,5 +1,5 @@
 use crate::prelude::{
-    DeviceStatus, SmartDeviceInfo, SmartHouseError, SmartHouseStorage, SmartHouseStorageMemory,
+    SmartDeviceInfo, SmartHouseError, SmartHouseStorage, SmartHouseStorageMemory,
     SmartHouseStorageMongoDB,
 };
 use crate::smart_house_storage_mongodb::{CollectionDevice, CollectionRoom};
@@ -122,14 +122,37 @@ impl MockDeviceInfoProvider for SmartHouseStorageMongoDB {
 
     async fn device_info(
         &self,
-        _room: &str,
-        _device: &str,
+        room: &str,
+        device: &str,
     ) -> Result<SmartDeviceInfo, SmartHouseError> {
-        Ok(SmartDeviceInfo {
-            name: "111".to_string(),
-            status: DeviceStatus::On.to_string(),
-            power: 111.222,
-            temp: 333.444,
-        })
+        if self
+            .collection_rooms
+            .count_documents(doc! {"name": room})
+            .await?
+            == 0
+        {
+            return Err(SmartHouseError::RoomNotFoundError(room.to_string()));
+        }
+
+        if self
+            .collection_devices
+            .count_documents(doc! {"room_name": room, "device.name": device})
+            .await?
+            == 0
+        {
+            return Err(SmartHouseError::DeviceNotFoundError(
+                room.to_string(),
+                device.to_string(),
+            ));
+        }
+
+        let device_info = self
+            .collection_devices
+            .find_one(doc! {"room_name": room, "device.name": device})
+            .await?
+            .unwrap()
+            .device;
+
+        Ok(device_info)
     }
 }

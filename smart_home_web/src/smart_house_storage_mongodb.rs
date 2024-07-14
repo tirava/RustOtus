@@ -3,6 +3,7 @@ use async_trait::async_trait;
 use futures::stream::TryStreamExt;
 use mongodb::bson::doc;
 use mongodb::{Client, Collection};
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 pub struct SmartHouseStorageMongoDB {
@@ -138,15 +139,17 @@ impl SmartHouseStorage for SmartHouseStorageMongoDB {
             ));
         }
 
+        let status = match rand::thread_rng().gen_range(0..2) {
+            0 => DeviceStatus::On.to_string(),
+            _ => DeviceStatus::Off.to_string(),
+        };
+        let power = rand::thread_rng().gen_range(10.0..3000.0);
+        let temp = rand::thread_rng().gen_range(18.0..30.0);
+
         self.collection_devices
             .insert_one(CollectionDevice {
                 room_name: room.to_string(),
-                device: SmartDeviceInfo::new(
-                    device.to_string(),
-                    DeviceStatus::Off.to_string(),
-                    0.0,
-                    0.0,
-                ),
+                device: SmartDeviceInfo::new(device.to_string(), status, power, temp),
             })
             .await?;
 
