@@ -63,8 +63,29 @@ impl SmartHouseStorage for SmartHouseStorageMongoDB {
         todo!()
     }
 
-    async fn devices(&self, _room: &str) -> Result<Vec<String>, SmartHouseError> {
-        todo!()
+    async fn devices(&self, room: &str) -> Result<Vec<String>, SmartHouseError> {
+        if self
+            .collection_rooms
+            .count_documents(doc! {"name": room})
+            .await?
+            == 0
+        {
+            return Err(SmartHouseError::RoomNotFoundError(room.to_string()));
+        }
+
+        let cursor = self
+            .collection_devices
+            .find(doc! {"room_name": room})
+            .await?;
+
+        let devices = cursor
+            .try_collect::<Vec<CollectionDevice>>()
+            .await?
+            .into_iter()
+            .map(|device| device.device.name)
+            .collect();
+
+        Ok(devices)
     }
 
     async fn add_device(&self, _room: &str, _device: &str) -> Result<(), SmartHouseError> {
