@@ -1,8 +1,9 @@
-use actix_web::{http::StatusCode, test, web, App};
+use actix_web::{http::StatusCode, test, web, web::Bytes, App};
 use rand::Rng;
 use smart_home_web::http_handler::prelude::*;
 use smart_home_web::prelude::{AppData, DeviceStatus, SmartHouseError, SmartHouseStorageMemory};
 use std::collections::HashMap;
+use urlencoding::encode;
 
 const HOUSE_NAME: &str = "Мой умный дом (http)";
 const HOUSE_ADDRESS: &str = "ул. Умных домов, д.2, кв.3";
@@ -18,23 +19,39 @@ const SWITCH_2: &str = "Выключатель-2";
 
 #[actix_web::test]
 async fn test_rooms() {
+    let expected = format!("[\"{LIVING_ROOM}\",\"{KITCHEN}\",\"{BEDROOM}\"]");
+
+    test_helper_http("/rooms", expected).await;
+}
+
+#[actix_web::test]
+async fn test_devices_in_rooms() {
+    let kitchen = encode(KITCHEN).to_string();
+    let path = "/devices/".to_owned() + &kitchen;
+    let expected = format!("[\"{SWITCH_1}\",\"{SOCKET_1}\",\"{SOCKET_2}\"]");
+
+    test_helper_http(&path, expected).await;
+}
+
+async fn test_helper_http(path: &str, expected: String) {
     let app_data = new_house_http().await.unwrap();
     let data = web::Data::new(app_data);
 
     let app = test::init_service(
         App::new()
             .app_data(web::Data::clone(&data))
-            .service(get_rooms),
+            .service(get_rooms)
+            .service(get_room_devices),
     )
     .await;
 
-    let req = test::TestRequest::get().uri("/rooms").to_request();
+    let req = test::TestRequest::get().uri(path).to_request();
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), StatusCode::OK);
 
     let body = test::read_body(resp).await;
-    let expected_json = r#"["Гостиная","Кухня","Спальня"]"#;
-    assert_eq!(body, actix_web::web::Bytes::from(expected_json));
+    let expected_json = expected;
+    assert_eq!(body, Bytes::from(expected_json));
 }
 
 async fn new_house_http() -> Result<AppData, SmartHouseError> {

@@ -21,3 +21,4 @@ serde = { version = "1.0.204", features = ["derive"] }
 dashmap = "6.0.1"
 mongodb = "3.0.1"
 futures = "0.3.30"
+urlencoding = "2.1.3"

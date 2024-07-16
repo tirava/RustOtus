@@ -38,7 +38,10 @@ impl AppData {
     }
 
     pub async fn devices(&self, room: &str) -> Result<Vec<String>, SmartHouseError> {
-        self.storage.devices(room).await
+        let mut devices = self.storage.devices(room).await?;
+        devices.sort();
+
+        Ok(devices)
     }
 
     pub async fn add_device(&self, room: &str, device: &str) -> Result<(), SmartHouseError> {
