@@ -23,7 +23,10 @@ impl AppData {
     }
 
     pub async fn rooms(&self) -> Result<Vec<String>, SmartHouseError> {
-        self.storage.rooms().await
+        let mut rooms = self.storage.rooms().await?;
+        rooms.sort();
+
+        Ok(rooms)
     }
 
     pub async fn add_room(&self, room: &str) -> Result<(), SmartHouseError> {
