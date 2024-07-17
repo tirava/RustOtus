@@ -22,8 +22,8 @@ const SWITCH_2: &str = "Выключатель-2";
 async fn test_http_rooms() {
     let app_data = new_house_http().await.unwrap();
     let data = web::Data::new(app_data);
-    let expected = format!("[\"{LIVING_ROOM}\",\"{KITCHEN}\",\"{BEDROOM}\"]");
 
+    let expected = format!("[\"{LIVING_ROOM}\",\"{KITCHEN}\",\"{BEDROOM}\"]");
     test_http_helper(data, "/rooms", Method::GET, StatusCode::OK, expected).await;
 }
 
@@ -32,8 +32,8 @@ async fn test_http_devices_in_rooms() {
     let app_data = new_house_http().await.unwrap();
     let data = web::Data::new(app_data);
     let path = "/devices/".to_owned() + &encode(KITCHEN).to_string();
-    let expected = format!("[\"{SWITCH_1}\",\"{SOCKET_1}\",\"{SOCKET_2}\"]");
 
+    let expected = format!("[\"{SWITCH_1}\",\"{SOCKET_1}\",\"{SOCKET_2}\"]");
     test_http_helper(data, &path, Method::GET, StatusCode::OK, expected).await;
 }
 
@@ -85,7 +85,6 @@ async fn test_http_room_device() {
         "power": 111.222,
         "temp": 0.0
     });
-
     test_http_helper(
         data,
         &path,
@@ -98,12 +97,44 @@ async fn test_http_room_device() {
 
 #[actix_web::test]
 async fn test_http_room_add_device() {
-    //  todo
+    let app_data = new_house_http().await.unwrap();
+    let data = web::Data::new(app_data);
+    let path = format!("/device/{}/room/{}", &encode(SWITCH_2), &encode(KITCHEN));
+
+    test_http_helper(
+        data.clone(),
+        &path,
+        Method::POST,
+        StatusCode::CREATED,
+        "".to_string(),
+    )
+    .await;
+
+    let path = "/devices/".to_owned() + &encode(KITCHEN).to_string();
+
+    let expected = format!("[\"{SWITCH_1}\",\"{SWITCH_2}\",\"{SOCKET_1}\",\"{SOCKET_2}\"]");
+    test_http_helper(data, &path, Method::GET, StatusCode::OK, expected).await;
 }
 
 #[actix_web::test]
 async fn test_http_room_remove_device() {
-    // todo
+    let app_data = new_house_http().await.unwrap();
+    let data = web::Data::new(app_data);
+    let path = format!("/device/{}/room/{}", &encode(SWITCH_1), &encode(KITCHEN));
+
+    test_http_helper(
+        data.clone(),
+        &path,
+        Method::DELETE,
+        StatusCode::OK,
+        "".to_string(),
+    )
+    .await;
+
+    let path = "/devices/".to_owned() + &encode(KITCHEN).to_string();
+    let expected = format!("[\"{SOCKET_1}\",\"{SOCKET_2}\"]");
+
+    test_http_helper(data, &path, Method::GET, StatusCode::OK, expected).await;
 }
 
 #[actix_web::test]
