@@ -15,6 +15,7 @@ const SWITCH_2: &str = "Выключатель-2";
 
 #[actix_web::main]
 async fn main() -> Result<(), SmartHouseError> {
+    dotenv::dotenv().ok();
     let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     env::set_var("RUST_LOG", log_level);
     env_logger::init();
