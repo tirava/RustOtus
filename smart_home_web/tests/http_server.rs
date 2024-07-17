@@ -73,6 +73,44 @@ async fn test_http_remove_room() {
     test_http_helper(data, "/rooms", Method::GET, StatusCode::OK, expected).await;
 }
 
+#[actix_web::test]
+async fn test_http_room_device() {
+    let app_data = new_house_http().await.unwrap();
+    let data = web::Data::new(app_data);
+    let path = format!("/device/{}/room/{}", &encode(SOCKET_1), &encode(KITCHEN));
+
+    let expected_json = serde_json::json!({
+        "name": SOCKET_1,
+        "status": DeviceStatus::On.to_string(),
+        "power": 111.222,
+        "temp": 0.0
+    });
+
+    test_http_helper(
+        data,
+        &path,
+        Method::GET,
+        StatusCode::OK,
+        expected_json.to_string(),
+    )
+    .await;
+}
+
+#[actix_web::test]
+async fn test_http_room_add_device() {
+    //  todo
+}
+
+#[actix_web::test]
+async fn test_http_room_remove_device() {
+    // todo
+}
+
+#[actix_web::test]
+async fn test_http_house_report() {
+    // todo
+}
+
 async fn test_http_helper(
     app_data: web::Data<AppData>,
     path: &str,
@@ -128,7 +166,7 @@ fn generate_mock_devices() -> HashMap<&'static str, HashMap<&'static str, SmartD
                     SmartDeviceInfo::new(
                         SOCKET_1.to_string(),
                         DeviceStatus::On.to_string(),
-                        rand::thread_rng().gen_range(10.0..3000.0),
+                        111.222,
                         0.0,
                     ),
                 ),
