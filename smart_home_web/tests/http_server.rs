@@ -18,22 +18,22 @@ const SWITCH_1: &str = "Выключатель-1";
 const SWITCH_2: &str = "Выключатель-2";
 
 #[actix_web::test]
-async fn test_rooms() {
+async fn test_http_rooms() {
     let expected = format!("[\"{LIVING_ROOM}\",\"{KITCHEN}\",\"{BEDROOM}\"]");
 
-    test_helper_http("/rooms", expected).await;
+    test_http_helper("/rooms", expected).await;
 }
 
 #[actix_web::test]
-async fn test_devices_in_rooms() {
+async fn test_http_devices_in_rooms() {
     let kitchen = encode(KITCHEN).to_string();
     let path = "/devices/".to_owned() + &kitchen;
     let expected = format!("[\"{SWITCH_1}\",\"{SOCKET_1}\",\"{SOCKET_2}\"]");
 
-    test_helper_http(&path, expected).await;
+    test_http_helper(&path, expected).await;
 }
 
-async fn test_helper_http(path: &str, expected: String) {
+async fn test_http_helper(path: &str, expected: String) {
     let app_data = new_house_http().await.unwrap();
     let data = web::Data::new(app_data);
 
@@ -50,8 +50,7 @@ async fn test_helper_http(path: &str, expected: String) {
     assert_eq!(resp.status(), StatusCode::OK);
 
     let body = test::read_body(resp).await;
-    let expected_json = expected;
-    assert_eq!(body, Bytes::from(expected_json));
+    assert_eq!(body, Bytes::from(expected));
 }
 
 async fn new_house_http() -> Result<AppData, SmartHouseError> {
