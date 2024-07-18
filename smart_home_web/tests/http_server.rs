@@ -30,7 +30,7 @@ async fn test_http_rooms() {
 async fn test_http_devices_in_rooms() {
     let app_data = new_house_http().await.unwrap();
     let data = web::Data::new(app_data);
-    let path = "/devices/".to_owned() + &encode(KITCHEN).to_string();
+    let path = "/devices/".to_owned() + &encode(KITCHEN);
 
     let expected = format!("[\"{SWITCH_1}\",\"{SOCKET_1}\",\"{SOCKET_2}\"]");
     test_http_helper(data, &path, Method::GET, StatusCode::OK, expected).await;
@@ -40,7 +40,7 @@ async fn test_http_devices_in_rooms() {
 async fn test_http_add_room() {
     let app_data = new_house_http().await.unwrap();
     let data = web::Data::new(app_data);
-    let path = "/room/".to_owned() + &encode(HALLWAY).to_string();
+    let path = "/room/".to_owned() + &encode(HALLWAY);
     test_http_helper(
         data.clone(),
         &path,
@@ -58,7 +58,7 @@ async fn test_http_add_room() {
 async fn test_http_remove_room() {
     let app_data = new_house_http().await.unwrap();
     let data = web::Data::new(app_data);
-    let path = "/room/".to_owned() + &encode(LIVING_ROOM).to_string();
+    let path = "/room/".to_owned() + &encode(LIVING_ROOM);
     test_http_helper(
         data.clone(),
         &path,
@@ -109,7 +109,7 @@ async fn test_http_room_add_device() {
     )
     .await;
 
-    let path = "/devices/".to_owned() + &encode(KITCHEN).to_string();
+    let path = "/devices/".to_owned() + &encode(KITCHEN);
 
     let expected = format!("[\"{SWITCH_1}\",\"{SWITCH_2}\",\"{SOCKET_1}\",\"{SOCKET_2}\"]");
     test_http_helper(data, &path, Method::GET, StatusCode::OK, expected).await;
@@ -130,7 +130,7 @@ async fn test_http_room_remove_device() {
     )
     .await;
 
-    let path = "/devices/".to_owned() + &encode(KITCHEN).to_string();
+    let path = "/devices/".to_owned() + &encode(KITCHEN);
     let expected = format!("[\"{SOCKET_1}\",\"{SOCKET_2}\"]");
 
     test_http_helper(data, &path, Method::GET, StatusCode::OK, expected).await;
@@ -263,7 +263,7 @@ async fn new_house_http() -> Result<AppData, SmartHouseError> {
 }
 
 fn generate_mock_devices() -> HashMap<&'static str, HashMap<&'static str, SmartDeviceInfo>> {
-    let devices_info = HashMap::from([
+    HashMap::from([
         (
             KITCHEN,
             HashMap::from([
@@ -360,7 +360,5 @@ fn generate_mock_devices() -> HashMap<&'static str, HashMap<&'static str, SmartD
                 ),
             ]),
         ),
-    ]);
-
-    devices_info
+    ])
 }

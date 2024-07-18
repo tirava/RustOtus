@@ -51,7 +51,7 @@ async fn main() -> Result<(), SmartHouseError> {
 }
 
 fn generate_mock_devices() -> HashMap<&'static str, HashMap<&'static str, SmartDeviceInfo>> {
-    let devices_info = HashMap::from([
+    HashMap::from([
         (
             KITCHEN,
             HashMap::from([
@@ -148,7 +148,5 @@ fn generate_mock_devices() -> HashMap<&'static str, HashMap<&'static str, SmartD
                 ),
             ]),
         ),
-    ]);
-
-    devices_info
+    ])
 }
