@@ -1,5 +1,4 @@
 use actix_web::{http::Method, http::StatusCode, test, web, web::Bytes, App};
-use rand::Rng;
 use smart_home_web::http_handler::prelude::*;
 use smart_home_web::prelude::{AppData, DeviceStatus, SmartHouseError, SmartHouseStorageMemory};
 use std::collections::HashMap;
@@ -139,7 +138,83 @@ async fn test_http_room_remove_device() {
 
 #[actix_web::test]
 async fn test_http_house_report() {
-    // todo
+    let app_data = new_house_http().await.unwrap();
+    let data = web::Data::new(app_data);
+
+    let expected_json = serde_json::json!({
+      "name": HOUSE_NAME,
+      "address": HOUSE_ADDRESS,
+      "devices": {
+        LIVING_ROOM: [
+          {
+            "name": SWITCH_2,
+            "status": DeviceStatus::Off.to_string(),
+            "power": 0.0,
+            "temp": 0.0
+          },
+          {
+            "name": SOCKET_1,
+            "status": DeviceStatus::On.to_string(),
+            "power": 222.333,
+            "temp": 0.0
+          },
+          {
+            "name": THERMOMETER_1,
+            "status": DeviceStatus::Unknown.to_string(),
+            "power": 0.0,
+            "temp": 11.22
+          }
+        ],
+        KITCHEN: [
+          {
+            "name": SWITCH_1,
+            "status": DeviceStatus::On.to_string(),
+            "power": 0.0,
+            "temp": 0.0
+          },
+          {
+            "name": SOCKET_1,
+            "status": DeviceStatus::On.to_string(),
+            "power": 111.222,
+            "temp": 0.0
+          },
+          {
+            "name": SOCKET_2,
+            "status": DeviceStatus::Off.to_string(),
+            "power": 0.0,
+            "temp": 0.0
+          }
+        ],
+        BEDROOM: [
+          {
+            "name": SWITCH_1,
+            "status": DeviceStatus::Off.to_string(),
+            "power": 0.0,
+            "temp": 0.0
+          },
+          {
+            "name": SWITCH_2,
+            "status": DeviceStatus::On.to_string(),
+            "power": 0.0,
+            "temp": 0.0
+          },
+          {
+            "name": THERMOMETER_2,
+            "status": DeviceStatus::Unknown.to_string(),
+            "power": 0.0,
+            "temp": 22.33
+          }
+        ]
+      }
+    });
+    test_http_helper(
+        data,
+        "/house/report",
+        Method::GET,
+        StatusCode::OK,
+        expected_json.to_string(),
+    )
+    .await;
 }
 
 async fn test_http_helper(
@@ -230,7 +305,7 @@ fn generate_mock_devices() -> HashMap<&'static str, HashMap<&'static str, SmartD
                         THERMOMETER_1.to_string(),
                         DeviceStatus::Unknown.to_string(),
                         0.0,
-                        rand::thread_rng().gen_range(20.0..25.0),
+                        11.22,
                     ),
                 ),
                 (
@@ -238,7 +313,7 @@ fn generate_mock_devices() -> HashMap<&'static str, HashMap<&'static str, SmartD
                     SmartDeviceInfo::new(
                         SOCKET_1.to_string(),
                         DeviceStatus::On.to_string(),
-                        rand::thread_rng().gen_range(100.0..300.0),
+                        222.333,
                         0.0,
                     ),
                 ),
@@ -262,7 +337,7 @@ fn generate_mock_devices() -> HashMap<&'static str, HashMap<&'static str, SmartD
                         THERMOMETER_2.to_string(),
                         DeviceStatus::Unknown.to_string(),
                         0.0,
-                        rand::thread_rng().gen_range(18.0..20.0),
+                        22.33,
                     ),
                 ),
                 (
