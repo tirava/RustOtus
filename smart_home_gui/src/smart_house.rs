@@ -155,6 +155,8 @@ pub enum SmartHouseError {
     DeviceInfoProviderError(String),
     #[error("ошибка MongoDB: {0}")]
     MongoDBError(#[from] mongodb::error::Error),
+    #[error("ошибка Iced: {0}")]
+    IcedError(#[from] iced::Error),
     #[error("внутренняя ошибка: {0}")]
     OtherError(String),
 }
