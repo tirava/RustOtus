@@ -1,4 +1,4 @@
-use iced::{Application, Settings};
+use iced::{window, Application, Settings, Size};
 use smart_home_gui::prelude::*;
 use tokio::time::{sleep, Duration};
 
@@ -26,7 +26,15 @@ async fn main() -> Result<(), SmartHouseError> {
     let result = SmartSocket::send_command(SOCKET_ADDR, "info").await?;
     println!("CLIENT: SmartSocket command 'info' - '{}'\n", result);
 
-    Counter::run(Settings::default())?;
+    Counter::run(Settings {
+        window: window::Settings {
+            size: Size::new(500.0, 300.0),
+            position: window::Position::Centered,
+            resizable: false,
+            ..window::Settings::default()
+        },
+        ..Settings::default()
+    })?;
 
     Ok(())
 }
