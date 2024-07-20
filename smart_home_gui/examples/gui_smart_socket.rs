@@ -26,7 +26,7 @@ async fn main() -> Result<(), SmartHouseError> {
     let result = SmartSocket::send_command(SOCKET_ADDR, "info").await?;
     println!("CLIENT: SmartSocket command 'info' - '{}'\n", result);
 
-    Counter::run(Settings {
+    SmartSocketGUI::run(Settings {
         window: window::Settings {
             size: Size::new(500.0, 300.0),
             position: window::Position::Centered,

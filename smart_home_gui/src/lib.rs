@@ -1,6 +1,6 @@
 mod app;
 mod device_info_provider;
-mod gui;
+mod gui_smart_socket;
 pub mod http_handler;
 mod http_server;
 pub mod smart_device;
@@ -16,7 +16,7 @@ mod smart_thermometer;
 pub mod prelude {
     pub use crate::app::AppData;
     pub use crate::device_info_provider::{BorrowingDeviceInfoProvider, OwningDeviceInfoProvider};
-    pub use crate::gui::prelude::*;
+    pub use crate::gui_smart_socket::prelude::*;
     pub use crate::http_handler::prelude::*;
     pub use crate::http_server::HTTPServer;
     pub use crate::smart_device::prelude::*;
