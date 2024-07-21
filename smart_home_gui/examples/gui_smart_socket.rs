@@ -7,7 +7,7 @@ fn main() -> Result<(), SmartHouseError> {
         window: window::Settings {
             size: Size::new(500.0, 300.0),
             position: window::Position::Centered,
-            resizable: false,
+            resizable: true,
             ..window::Settings::default()
         },
         ..Settings::default()

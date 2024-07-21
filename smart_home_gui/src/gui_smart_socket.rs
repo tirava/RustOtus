@@ -95,7 +95,14 @@ impl Application for SmartSocketGUI {
                 .into()
         } else {
             scrollable(
-                column(self.messages.iter().cloned().map(text).map(Element::from)).spacing(10),
+                column(
+                    self.messages
+                        .iter()
+                        .cloned()
+                        .map(|s| text(s).size(12))
+                        .map(Element::from),
+                )
+                .spacing(10),
             )
             .id(MESSAGE_LOG.clone())
             .height(Length::Fill)
