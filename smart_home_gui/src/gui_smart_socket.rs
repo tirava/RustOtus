@@ -27,8 +27,7 @@ enum State {
 pub enum Message {
     AddressChanged(String),
     CommandSendInfo,
-    CommandReceivedInfoOk(String),
-    CommandReceivedInfoError(String),
+    CommandReceivedInfo(String, String),
 }
 
 impl Application for SmartSocketGUI {
@@ -61,23 +60,25 @@ impl Application for SmartSocketGUI {
             Message::CommandSendInfo => {
                 return Command::perform(send_command(self.address.clone(), "info"), |result| {
                     match result {
-                        Ok(result) => Message::CommandReceivedInfoOk(result),
-                        Err(e) => {
-                            let err = e.to_string();
-                            Message::CommandReceivedInfoError(err)
-                        }
+                        Ok(result) => Message::CommandReceivedInfo(result, "".to_string()),
+                        Err(e) => Message::CommandReceivedInfo("".to_string(), e.to_string()),
                     }
                 });
             }
-            Message::CommandReceivedInfoOk(result) => {
-                let result = format!("GUI: SmartSocket command 'info' result: '{}'", result);
-                self.state = State::Connected;
+            Message::CommandReceivedInfo(result, error) => {
+                let date_time = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+                let result = match error.is_empty() {
+                    true => {
+                        self.state = State::Connected;
+                        format!("{date_time}: SmartSocket command 'info' result: '{result}'")
+                    }
+                    false => {
+                        self.state = State::Disconnected;
+                        format!("{date_time}: SmartSocket command 'info' result: '{error}'")
+                    }
+                };
                 self.messages.push(result);
-            }
-            Message::CommandReceivedInfoError(error) => {
-                let error = format!("GUI: SmartSocket command 'info' error: {}", error);
-                self.state = State::Disconnected;
-                self.messages.push(error);
+                return scrollable::snap_to(MESSAGE_LOG.clone(), scrollable::RelativeOffset::END);
             }
         }
 
@@ -101,7 +102,7 @@ impl Application for SmartSocketGUI {
             .into()
         };
 
-        let new_message_input = {
+        let connect_info = {
             let input = text_input("address:port", self.address.as_str())
                 .on_input(Message::AddressChanged)
                 .on_submit(Message::CommandSendInfo)
@@ -128,7 +129,7 @@ impl Application for SmartSocketGUI {
                 .align_items(Alignment::Center)
         };
 
-        column![new_message_input, message_log]
+        column![connect_info, message_log]
             .height(Length::Fill)
             .padding(20)
             .spacing(10)
