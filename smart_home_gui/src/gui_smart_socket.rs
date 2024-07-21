@@ -1,7 +1,9 @@
-use crate::prelude::{SmartDevice, SmartSocket};
+use crate::prelude::SmartHouseError;
 use iced::widget::{button, column, container, row, scrollable, text, text_input};
 use iced::{alignment, Alignment, Application, Color, Command, Element, Length, Theme};
 use once_cell::sync::Lazy;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpStream;
 
 pub mod prelude {
     pub use crate::gui_smart_socket::SmartSocketGUI;
@@ -57,27 +59,24 @@ impl Application for SmartSocketGUI {
                 self.state = State::Disconnected;
             }
             Message::CommandSendInfo => {
-                return Command::perform(
-                    // todo - use self.address
-                    SmartSocket::send_command("127.0.0.1:54321", "info"),
-                    |result| match result {
+                return Command::perform(send_command(self.address.clone(), "info"), |result| {
+                    match result {
                         Ok(result) => Message::CommandReceivedInfoOk(result),
                         Err(e) => {
                             let err = e.to_string();
                             Message::CommandReceivedInfoError(err)
                         }
-                    },
-                );
+                    }
+                });
             }
             Message::CommandReceivedInfoOk(result) => {
-                // todo delete println -> logs
-                println!("GUI: SmartSocket command 'info' - '{}'", result);
+                let result = format!("GUI: SmartSocket command 'info' result: '{}'", result);
                 self.state = State::Connected;
                 self.messages.push(result);
             }
             Message::CommandReceivedInfoError(error) => {
-                // todo delete println -> logs
-                println!("GUI: SmartSocket command 'info' - error: {}", error);
+                let error = format!("GUI: SmartSocket command 'info' error: {}", error);
+                self.state = State::Disconnected;
                 self.messages.push(error);
             }
         }
@@ -134,5 +133,26 @@ impl Application for SmartSocketGUI {
             .padding(20)
             .spacing(10)
             .into()
+    }
+}
+
+async fn send_command(addr: String, command: &str) -> Result<String, SmartHouseError> {
+    println!(
+        "SMART_DEVICE: connecting to address '{}' with command '{}'...",
+        addr, command
+    );
+
+    match TcpStream::connect(addr).await {
+        Ok(mut stream) => {
+            let command = format!("{}\n", command);
+            stream.write_all(command.as_bytes()).await?;
+
+            let mut data = String::new();
+            match stream.read_to_string(&mut data).await {
+                Ok(_) => Ok(data),
+                Err(err) => Err(SmartHouseError::from(err)),
+            }
+        }
+        Err(err) => Err(SmartHouseError::from(err)),
     }
 }
