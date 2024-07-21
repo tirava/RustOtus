@@ -7,6 +7,7 @@ pub mod prelude {
     pub use crate::gui_smart_socket::SmartSocketGUI;
 }
 
+const SOCKET_ADDR: &str = "127.0.0.1:54321";
 static MESSAGE_LOG: Lazy<scrollable::Id> = Lazy::new(scrollable::Id::unique);
 
 pub struct SmartSocketGUI {
@@ -37,8 +38,7 @@ impl Application for SmartSocketGUI {
     fn new(_flags: ()) -> (Self, Command<Message>) {
         (
             SmartSocketGUI {
-                // todo from const
-                address: String::from("127.0.0.1:54321"),
+                address: SOCKET_ADDR.to_string(),
                 messages: Vec::new(),
                 state: State::Disconnected,
             },
@@ -57,7 +57,6 @@ impl Application for SmartSocketGUI {
                 self.state = State::Disconnected;
             }
             Message::CommandSendInfo => {
-                println!("GUI: SmartSocket command 'info'");
                 return Command::perform(
                     // todo - use self.address
                     SmartSocket::send_command("127.0.0.1:54321", "info"),
