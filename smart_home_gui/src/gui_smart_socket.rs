@@ -2,9 +2,10 @@ use crate::prelude::SmartHouseError;
 use iced::border::Radius;
 use iced::theme::{Button, Container, Scrollable};
 use iced::widget::scrollable::{Scrollbar, Scroller};
-use iced::widget::{button, column, container, row, scrollable, text, text_input};
+use iced::widget::{button, column, container, row, scrollable, text, text_input, toggler};
 use iced::{alignment, Alignment, Application, Border, Color, Command, Element, Length, Theme};
 use once_cell::sync::Lazy;
+use std::cmp::PartialEq;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 
@@ -19,6 +20,8 @@ pub struct SmartSocketGUI {
     messages: Vec<String>,
     address: String,
     state: State,
+    switch: bool,
+    connect_button_text: String,
 }
 
 enum State {
@@ -26,11 +29,21 @@ enum State {
     Connected,
 }
 
+impl PartialEq for State {
+    fn eq(&self, other: &Self) -> bool {
+        matches!(
+            (self, other),
+            (Self::Disconnected, Self::Disconnected) | (Self::Connected, Self::Connected)
+        )
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum Message {
     AddressChanged(String),
     CommandSendInfo,
     CommandReceivedInfo(String, String),
+    CommandSwitch(bool),
 }
 
 impl Application for SmartSocketGUI {
@@ -45,6 +58,8 @@ impl Application for SmartSocketGUI {
                 address: SOCKET_ADDR.to_string(),
                 messages: Vec::new(),
                 state: State::Disconnected,
+                switch: false,
+                connect_button_text: "Connect".to_string(),
             },
             Command::none(),
         )
@@ -59,6 +74,7 @@ impl Application for SmartSocketGUI {
             Message::AddressChanged(value) => {
                 self.address = value;
                 self.state = State::Disconnected;
+                self.connect_button_text = "Connect".to_string();
             }
             Message::CommandSendInfo => {
                 return Command::perform(send_command(self.address.clone(), "info"), |result| {
@@ -72,16 +88,31 @@ impl Application for SmartSocketGUI {
                 let date_time = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
                 let result = match error.is_empty() {
                     true => {
+                        self.connect_button_text = "Get Info".to_string();
                         self.state = State::Connected;
                         format!("{date_time}: SmartSocket command 'info' result: '{result}'")
                     }
                     false => {
+                        self.connect_button_text = "Connect".to_string();
                         self.state = State::Disconnected;
                         format!("{date_time}: SmartSocket command 'info' result: '{error}'")
                     }
                 };
                 self.messages.push(result);
                 return scrollable::snap_to(MESSAGE_LOG.clone(), scrollable::RelativeOffset::END);
+            }
+            Message::CommandSwitch(state) => {
+                if self.state == State::Disconnected {
+                    return Command::none();
+                }
+                self.switch = state;
+                let command = if state { "on" } else { "off" };
+                return Command::perform(send_command(self.address.clone(), command), |result| {
+                    match result {
+                        Ok(result) => Message::CommandReceivedInfo(result, "".to_string()),
+                        Err(e) => Message::CommandReceivedInfo("".to_string(), e.to_string()),
+                    }
+                });
             }
         }
 
@@ -122,7 +153,7 @@ impl Application for SmartSocketGUI {
                 .padding(10);
 
             let button = button(
-                text("Connect")
+                text(self.connect_button_text.as_str())
                     .height(40)
                     .vertical_alignment(alignment::Vertical::Center),
             )
@@ -130,19 +161,22 @@ impl Application for SmartSocketGUI {
             .style(Button::Primary)
             .on_press(Message::CommandSendInfo);
 
-            // if matches!(self.state, State::Connected(_)) {
-            //     if let Some(message) = echo::Message::new(&self.new_message) {
-            //         input = input.on_submit(Message::Send(message.clone()));
-            //         button = button.on_press(Message::Send(message));
-            //     }
-            // }
-
             row![input, button]
                 .spacing(10)
                 .align_items(Alignment::Center)
         };
 
-        column![connect_info, message_log]
+        let switch_info = {
+            let switch = {
+                toggler("Smart Socket On/Off".to_string(), self.switch, |b| {
+                    Message::CommandSwitch(b)
+                })
+            };
+
+            row![switch].spacing(10).align_items(Alignment::Center)
+        };
+
+        column![connect_info, switch_info, message_log]
             .height(Length::Fill)
             .padding(20)
             .spacing(10)
