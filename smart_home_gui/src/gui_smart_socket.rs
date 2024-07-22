@@ -1,6 +1,9 @@
 use crate::prelude::SmartHouseError;
+use iced::border::Radius;
+use iced::theme::{Button, Container, Scrollable};
+use iced::widget::scrollable::{Scrollbar, Scroller};
 use iced::widget::{button, column, container, row, scrollable, text, text_input};
-use iced::{alignment, Alignment, Application, Color, Command, Element, Length, Theme};
+use iced::{alignment, Alignment, Application, Border, Color, Command, Element, Length, Theme};
 use once_cell::sync::Lazy;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
@@ -92,6 +95,7 @@ impl Application for SmartSocketGUI {
                 .height(Length::Fill)
                 .center_x()
                 .center_y()
+                .style(Container::Custom(Box::new(StyleContainer)))
                 .into()
         } else {
             scrollable(
@@ -102,10 +106,12 @@ impl Application for SmartSocketGUI {
                         .map(|s| text(s).size(12))
                         .map(Element::from),
                 )
+                .padding(10)
                 .spacing(10),
             )
             .id(MESSAGE_LOG.clone())
             .height(Length::Fill)
+            .style(Scrollable::Custom(Box::new(StyleScrollable)))
             .into()
         };
 
@@ -121,7 +127,7 @@ impl Application for SmartSocketGUI {
                     .vertical_alignment(alignment::Vertical::Center),
             )
             .padding([0, 20])
-            .style(iced::theme::Button::Primary)
+            .style(Button::Primary)
             .on_press(Message::CommandSendInfo);
 
             // if matches!(self.state, State::Connected(_)) {
@@ -162,5 +168,62 @@ async fn send_command(addr: String, command: &str) -> Result<String, SmartHouseE
             }
         }
         Err(err) => Err(SmartHouseError::from(err)),
+    }
+}
+
+struct StyleContainer;
+
+impl container::StyleSheet for StyleContainer {
+    type Style = Theme;
+
+    fn appearance(&self, _style: &Self::Style) -> container::Appearance {
+        container::Appearance {
+            text_color: None,
+            background: None,
+            border: Border {
+                color: Color::from_rgb8(0xd8, 0xd8, 0xd8),
+                width: 1.0,
+                radius: Radius::from(0),
+            },
+            shadow: Default::default(),
+        }
+    }
+}
+
+struct StyleScrollable;
+
+impl scrollable::StyleSheet for StyleScrollable {
+    type Style = Theme;
+
+    fn active(&self, _style: &Self::Style) -> scrollable::Appearance {
+        scrollable::Appearance {
+            container: container::Appearance {
+                text_color: None,
+                background: None,
+                border: Border {
+                    color: Color::from_rgb8(0xd8, 0xd8, 0xd8),
+                    width: 1.0,
+                    radius: Radius::from(0),
+                },
+                shadow: Default::default(),
+            },
+            scrollbar: Scrollbar {
+                background: Default::default(),
+                border: Default::default(),
+                scroller: Scroller {
+                    color: Default::default(),
+                    border: Default::default(),
+                },
+            },
+            gap: None,
+        }
+    }
+
+    fn hovered(
+        &self,
+        _style: &Self::Style,
+        _is_mouse_over_scrollbar: bool,
+    ) -> scrollable::Appearance {
+        self.active(_style)
     }
 }
