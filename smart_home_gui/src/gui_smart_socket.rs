@@ -202,18 +202,30 @@ impl Application for SmartSocketGUI {
 
         let state_info: Column<'_, Message, Theme, Renderer> = {
             column![
-                row![text("Room name: "), text(self.room_name.as_str()),]
-                    .spacing(10)
-                    .align_items(Alignment::Center),
-                row![text("Device name:"), text(self.device_name.as_str()),]
-                    .spacing(10)
-                    .align_items(Alignment::Center),
-                row![text("Device status:"), text(self.device_status.as_str()),]
-                    .spacing(10)
-                    .align_items(Alignment::Center),
-                row![text("Device power:"), text(self.device_power.as_str()),]
-                    .spacing(10)
-                    .align_items(Alignment::Center),
+                row![
+                    text("Room name:").width(100),
+                    text(self.room_name.as_str()).style(Color::from_rgb8(0x00, 0x00, 0xff)),
+                ]
+                .spacing(10)
+                .align_items(Alignment::Center),
+                row![
+                    text("Device name:").width(100),
+                    text(self.device_name.as_str()).style(Color::from_rgb8(0x00, 0x00, 0xff)),
+                ]
+                .spacing(10)
+                .align_items(Alignment::Center),
+                row![
+                    text("Device status:").width(100),
+                    text(self.device_status.as_str()).style(Color::from_rgb8(0x00, 0x00, 0xff)),
+                ]
+                .spacing(10)
+                .align_items(Alignment::Center),
+                row![
+                    text("Device power:").width(100),
+                    text(self.device_power.as_str()).style(Color::from_rgb8(0x00, 0x00, 0xff)),
+                ]
+                .spacing(10)
+                .align_items(Alignment::Center),
             ]
             .spacing(10)
         };
