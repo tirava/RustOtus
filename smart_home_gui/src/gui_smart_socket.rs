@@ -2,8 +2,10 @@ use crate::prelude::{DeviceStatus, SmartHouseError};
 use iced::border::Radius;
 use iced::theme::{Button, Container, Scrollable};
 use iced::widget::scrollable::{Scrollbar, Scroller};
-use iced::widget::{button, column, container, row, scrollable, text, text_input, toggler};
-use iced::{alignment, Alignment, Application, Border, Color, Command, Element, Length, Theme};
+use iced::widget::{button, column, container, row, scrollable, text, text_input, toggler, Column};
+use iced::{
+    alignment, Alignment, Application, Border, Color, Command, Element, Length, Renderer, Theme,
+};
 use once_cell::sync::Lazy;
 use std::cmp::PartialEq;
 use std::collections::HashMap;
@@ -65,10 +67,10 @@ impl Application for SmartSocketGUI {
                 state: State::Disconnected,
                 switch: false,
                 connect_button_text: "Connect".to_string(),
-                device_name: "".to_string(),
-                room_name: "".to_string(),
-                device_status: "".to_string(),
-                device_power: "".to_string(),
+                device_name: "?".to_string(),
+                room_name: "?".to_string(),
+                device_status: "?".to_string(),
+                device_power: "?".to_string(),
             },
             Command::none(),
         )
@@ -101,12 +103,17 @@ impl Application for SmartSocketGUI {
                         self.state = State::Connected;
 
                         let info = parse_device_info(&result);
-                        self.device_name = info.get("name").unwrap_or(&"".to_string()).to_string();
-                        self.room_name = info.get("room").unwrap_or(&"".to_string()).to_string();
-                        self.device_status =
-                            info.get("status").unwrap_or(&"".to_string()).to_string();
+                        self.device_name =
+                            info.get("name").unwrap_or(&self.device_name).to_string();
+                        self.room_name = info.get("room").unwrap_or(&self.room_name).to_string();
+                        self.device_status = info
+                            .get("status")
+                            .unwrap_or(&self.device_status)
+                            .to_string();
                         self.device_power =
-                            info.get("power").unwrap_or(&"".to_string()).to_string();
+                            info.get("power").unwrap_or(&self.device_power).to_string();
+
+                        self.switch = self.device_status == DeviceStatus::On.to_string();
 
                         format!("{date_time}: SmartSocket command 'info' result: '{result}'")
                     }
@@ -186,32 +193,32 @@ impl Application for SmartSocketGUI {
         };
 
         let toggle_info = {
-            let switch = {
-                toggler("On/Off".to_string(), self.switch, |b| {
-                    Message::CommandSwitch(b)
-                })
-            };
+            let switch = toggler("On/Off".to_string(), self.switch, |b| {
+                Message::CommandSwitch(b)
+            });
 
             row![switch].spacing(10).align_items(Alignment::Center)
         };
 
-        // let state_info = {
-        //     let state = {
-        //
-        //     };
-        //     row![state]
-        //         .spacing(10)
-        //         .align_items(Alignment::Center);
-        //
-        //     let power = {
-        //
-        //     };
-        //     row![power]
-        //         .spacing(10)
-        //         .align_items(Alignment::Center)
-        // };
+        let state_info: Column<'_, Message, Theme, Renderer> = {
+            column![
+                row![text("Room name: "), text(self.room_name.as_str()),]
+                    .spacing(10)
+                    .align_items(Alignment::Center),
+                row![text("Device name:"), text(self.device_name.as_str()),]
+                    .spacing(10)
+                    .align_items(Alignment::Center),
+                row![text("Device status:"), text(self.device_status.as_str()),]
+                    .spacing(10)
+                    .align_items(Alignment::Center),
+                row![text("Device power:"), text(self.device_power.as_str()),]
+                    .spacing(10)
+                    .align_items(Alignment::Center),
+            ]
+            .spacing(10)
+        };
 
-        column![connect_info, toggle_info, message_log]
+        column![connect_info, toggle_info, state_info, message_log]
             .height(Length::Fill)
             .padding(20)
             .spacing(10)
