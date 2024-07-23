@@ -1,4 +1,4 @@
-use crate::prelude::SmartHouseError;
+use crate::prelude::{DeviceStatus, SmartHouseError};
 use iced::border::Radius;
 use iced::theme::{Button, Container, Scrollable};
 use iced::widget::scrollable::{Scrollbar, Scroller};
@@ -6,6 +6,7 @@ use iced::widget::{button, column, container, row, scrollable, text, text_input,
 use iced::{alignment, Alignment, Application, Border, Color, Command, Element, Length, Theme};
 use once_cell::sync::Lazy;
 use std::cmp::PartialEq;
+use std::collections::HashMap;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 
@@ -22,6 +23,10 @@ pub struct SmartSocketGUI {
     state: State,
     switch: bool,
     connect_button_text: String,
+    device_name: String,
+    room_name: String,
+    device_status: String,
+    device_power: String,
 }
 
 enum State {
@@ -60,6 +65,10 @@ impl Application for SmartSocketGUI {
                 state: State::Disconnected,
                 switch: false,
                 connect_button_text: "Connect".to_string(),
+                device_name: "".to_string(),
+                room_name: "".to_string(),
+                device_status: "".to_string(),
+                device_power: "".to_string(),
             },
             Command::none(),
         )
@@ -90,11 +99,21 @@ impl Application for SmartSocketGUI {
                     true => {
                         self.connect_button_text = "Get Info".to_string();
                         self.state = State::Connected;
+
+                        let info = parse_device_info(&result);
+                        self.device_name = info.get("name").unwrap_or(&"".to_string()).to_string();
+                        self.room_name = info.get("room").unwrap_or(&"".to_string()).to_string();
+                        self.device_status =
+                            info.get("status").unwrap_or(&"".to_string()).to_string();
+                        self.device_power =
+                            info.get("power").unwrap_or(&"".to_string()).to_string();
+
                         format!("{date_time}: SmartSocket command 'info' result: '{result}'")
                     }
                     false => {
                         self.connect_button_text = "Connect".to_string();
                         self.state = State::Disconnected;
+
                         format!("{date_time}: SmartSocket command 'info' result: '{error}'")
                     }
                 };
@@ -166,9 +185,9 @@ impl Application for SmartSocketGUI {
                 .align_items(Alignment::Center)
         };
 
-        let switch_info = {
+        let toggle_info = {
             let switch = {
-                toggler("Smart Socket On/Off".to_string(), self.switch, |b| {
+                toggler("On/Off".to_string(), self.switch, |b| {
                     Message::CommandSwitch(b)
                 })
             };
@@ -176,12 +195,48 @@ impl Application for SmartSocketGUI {
             row![switch].spacing(10).align_items(Alignment::Center)
         };
 
-        column![connect_info, switch_info, message_log]
+        // let state_info = {
+        //     let state = {
+        //
+        //     };
+        //     row![state]
+        //         .spacing(10)
+        //         .align_items(Alignment::Center);
+        //
+        //     let power = {
+        //
+        //     };
+        //     row![power]
+        //         .spacing(10)
+        //         .align_items(Alignment::Center)
+        // };
+
+        column![connect_info, toggle_info, message_log]
             .height(Length::Fill)
             .padding(20)
             .spacing(10)
             .into()
     }
+}
+
+fn parse_device_info(info: &str) -> HashMap<String, String> {
+    let mut result = HashMap::new();
+    info.split(", ").for_each(|s| {
+        if let Some((key, value)) = s.split_once(": ") {
+            result.insert(key.to_string(), value.to_string());
+        }
+    });
+
+    if result.is_empty() {
+        let status = match info {
+            "device is now ON" => DeviceStatus::On.to_string(),
+            "device is now OFF" => DeviceStatus::Off.to_string(),
+            _ => DeviceStatus::Unknown.to_string(),
+        };
+        result.insert("status".to_string(), status);
+    }
+
+    result
 }
 
 async fn send_command(addr: String, command: &str) -> Result<String, SmartHouseError> {
