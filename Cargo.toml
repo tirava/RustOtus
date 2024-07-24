@@ -12,7 +12,8 @@ members = [
     "oop",
     "smart_home_thiserror",
     "patterns",
-    "smart_home_web"
+    "smart_home_web",
+    "smart_home_gui"
 ]
 
 resolver = "2"
