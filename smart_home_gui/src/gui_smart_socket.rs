@@ -203,25 +203,25 @@ impl Application for SmartSocketGUI {
         let state_info: Column<'_, Message, Theme, Renderer> = {
             column![
                 row![
-                    text("Room name:").width(100),
+                    text("Room name:").width(120),
                     text(self.room_name.as_str()).style(Color::from_rgb8(0x00, 0x00, 0xff)),
                 ]
                 .spacing(10)
                 .align_items(Alignment::Center),
                 row![
-                    text("Device name:").width(100),
+                    text("Device name:").width(120),
                     text(self.device_name.as_str()).style(Color::from_rgb8(0x00, 0x00, 0xff)),
                 ]
                 .spacing(10)
                 .align_items(Alignment::Center),
                 row![
-                    text("Device status:").width(100),
+                    text("Device status:").width(120),
                     text(self.device_status.as_str()).style(Color::from_rgb8(0x00, 0x00, 0xff)),
                 ]
                 .spacing(10)
                 .align_items(Alignment::Center),
                 row![
-                    text("Device power:").width(100),
+                    text("Device power:").width(120),
                     text(self.device_power.as_str()).style(Color::from_rgb8(0x00, 0x00, 0xff)),
                 ]
                 .spacing(10)
