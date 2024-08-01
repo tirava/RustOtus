@@ -5,10 +5,8 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-# Uncomment [lib] section if you want to build a dynamic library
-# cargo build --package smart_home_dyn_lib --lib
-#[lib]
-#crate-type = ["staticlib", "cdylib"]
+[lib]
+crate-type = ["lib", "staticlib", "cdylib"]
 
 [dependencies]
 rand = "0.8.5"
