@@ -157,6 +157,8 @@ pub enum SmartHouseError {
     MongoDBError(#[from] mongodb::error::Error),
     #[error("ошибка Iced: {0}")]
     IcedError(#[from] iced::Error),
+    #[error("ошибка загрузки библиотеки: {0}")]
+    LibraryError(#[from] libloading::Error),
     #[error("внутренняя ошибка: {0}")]
     OtherError(String),
 }

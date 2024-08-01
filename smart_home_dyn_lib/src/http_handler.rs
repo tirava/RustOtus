@@ -227,6 +227,7 @@ impl ResponseError for SmartHouseError {
             Self::DeviceInfoProviderError(_) => StatusCode::NOT_FOUND,
             Self::MongoDBError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::IcedError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::LibraryError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::OtherError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
