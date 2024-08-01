@@ -22,7 +22,7 @@ fn main() -> Result<(), SmartHouseError> {
     // println!("CLIENT: SmartSocket command 'qqq' - '{}'\n", result);
 
     unsafe {
-        let lib = libloading::Library::new("smart_home_dyn_lib.dll")?;
+        let lib = libloading::Library::new("smart_home_dyn_lib")?;
         let get_int_fn = lib.get::<fn() -> i32>(b"get_integer")?;
 
         let got = get_int_fn();

@@ -8,7 +8,7 @@ edition = "2021"
 # Uncomment [lib] section if you want to build a dynamic library
 # cargo build --package smart_home_dyn_lib --lib
 #[lib]
-#crate-type = ["cdylib"]
+#crate-type = ["staticlib", "cdylib"]
 
 [dependencies]
 rand = "0.8.5"
