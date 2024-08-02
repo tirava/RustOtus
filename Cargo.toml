@@ -13,7 +13,8 @@ members = [
     "smart_home_thiserror",
     "patterns",
     "smart_home_web",
-    "smart_home_gui"
+    "smart_home_gui",
+    "smart_home_dyn_lib"
 ]
 
 resolver = "2"
