@@ -39,8 +39,10 @@ fn send_command_helper(address: &str, command: &str) -> String {
     let address = CString::new(address).unwrap();
 
     let result = unsafe {
-        let lib =
-            libloading::Library::new("smart_home_dyn_lib").expect("Failed to load smart library");
+        // let lib = libloading::Library::new("smart_home_dyn_lib")
+        //     .expect("Failed to load smart library (Windows)");
+        let lib = libloading::Library::new("libsmart_home_dyn_lib.so")
+            .expect("Failed to load smart library (Linux)");
         let send_command = lib
             .get::<fn(*const c_char, *const c_char) -> *const c_char>(b"send_command")
             .expect("Failed to load send_command function");

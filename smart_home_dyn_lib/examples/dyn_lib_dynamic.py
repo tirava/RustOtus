@@ -1,7 +1,8 @@
 # for listening TCP SmartSocket commands start server example before run dyn_lib
 from ctypes import *
 
-my_lib = cdll.LoadLibrary("../target/debug/smart_home_dyn_lib.dll")
+# my_lib = cdll.LoadLibrary("../target/debug/smart_home_dyn_lib.dll")
+my_lib = cdll.LoadLibrary("../target/debug/libsmart_home_dyn_lib.so")
 
 send_command = my_lib.send_command
 send_command.restype = c_char_p
