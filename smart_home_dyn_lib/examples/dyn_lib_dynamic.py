@@ -10,10 +10,15 @@ send_command.argtypes = [c_char_p, c_char_p]
 result = send_command(c_char_p(b"127.0.0.1:54321"), c_char_p(b"info"))
 print(str(result, 'utf8'))
 
-# print(send_command("on"))
-# print(send_command("info"))
+result = send_command(c_char_p(b"127.0.0.1:54321"), c_char_p(b"on"))
+print(str(result, 'utf8'))
+result = send_command(c_char_p(b"127.0.0.1:54321"), c_char_p(b"info"))
+print(str(result, 'utf8'))
 
-# print(send_command("off"))
-# print(send_command("info"))
+result = send_command(c_char_p(b"127.0.0.1:54321"), c_char_p(b"off"))
+print(str(result, 'utf8'))
+result = send_command(c_char_p(b"127.0.0.1:54321"), c_char_p(b"info"))
+print(str(result, 'utf8'))
 
-# print(send_command("qqq"))
+result = send_command(c_char_p(b"127.0.0.1:54321"), c_char_p(b"qqq"))
+print(str(result, 'utf8'))
