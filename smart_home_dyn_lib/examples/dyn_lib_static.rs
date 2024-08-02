@@ -1,13 +1,18 @@
+use async_ffi::BorrowingFfiFuture;
 use smart_home_dyn_lib::prelude::SmartHouseError;
 use std::ffi::{c_char, CStr, CString};
 
-// const SOCKET_ADDR: &str = "127.0.0.1:54321";
+const SOCKET_ADDR: &str = "127.0.0.1:54321";
 
 extern "C" {
-    fn send_command(command: *const c_char) -> *const c_char;
+    fn send_command<'a>(
+        address: *const c_char,
+        command: *const c_char,
+    ) -> BorrowingFfiFuture<'a, *mut c_char>;
 }
 
-fn main() -> Result<(), SmartHouseError> {
+#[tokio::main]
+async fn main() -> Result<(), SmartHouseError> {
     // for listening TCP SmartSocket commands start server example before run dyn_lib
 
     // let result = SmartSocket::send_command(SOCKET_ADDR, "info").await?;
@@ -28,16 +33,18 @@ fn main() -> Result<(), SmartHouseError> {
 
     println!(
         "CLIENT: SmartSocket command 'info' - '{}'",
-        send_command_helper("info")
+        send_command_helper(SOCKET_ADDR, "info").await
     );
 
     Ok(())
 }
 
-fn send_command_helper(command: &str) -> String {
+async fn send_command_helper(address: &str, command: &str) -> String {
     let command = CString::new(command).unwrap();
+    let address = CString::new(address).unwrap();
+
     let result = unsafe {
-        let result = send_command(command.as_ptr());
+        let result = send_command(address.as_ptr(), command.as_ptr()).await;
         CStr::from_ptr(result)
     };
 
